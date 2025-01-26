@@ -1,66 +1,132 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Ticketing API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This is a Ticketing System API designed for handling event tickets, user interactions, and ticket transfers. It features three user roles: Admin, Organizer, and User. Admins have full control, Organizers can create events and manage tickets, and Users can buy tickets, transfer tickets, and chat with other users.
 
-## About Laravel
+## Repository
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+**GitHub Repository:**  
+[https://github.com/KenPrz/ticketing-api](https://github.com/KenPrz/ticketing-api)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Table of Contents
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- [Project Overview](#project-overview)
+- [Features](#features)
+- [Setup Instructions](#setup-instructions)
+- [API Documentation](#api-documentation)
 
-## Learning Laravel
+## Project Overview
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+This API allows users to buy tickets, transfer tickets, chat with users, and more. Organizers can create and manage events, while Admins manage everything but chats.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Key Features:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- **User Features:**
+  - Register, login, and manage profiles.
+  - Buy tickets for events.
+  - Transfer tickets to other users.
+  - Chat with users and organizers.
 
-## Laravel Sponsors
+- **Organizer Features:**
+  - Create and manage events.
+  - Verify ticket purchases.
+  - Chat with users.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- **Admin Features:**
+  - Full access to user, event, and ticket management (excluding chat functionality).
 
-### Premium Partners
+---
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+## Setup Instructions
 
-## Contributing
+### Prerequisites
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- [Docker](https://www.docker.com/get-started) and [Docker Compose](https://docs.docker.com/compose/) are required for local development.
+- Laravel Sail for local development environment (built on Docker).
+  
+### 1. Clone the Repository
 
-## Code of Conduct
+Clone the repository to your local machine:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+git clone git@github.com:KenPrz/ticketing-api.git
+cd ticketing-api
+```
 
-## Security Vulnerabilities
+### 2. Install Dependencies
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Run the following command to install Laravel's dependencies and set up the environment:
 
-## License
+```bash
+composer install
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 3. Set Up Docker Environment
+
+This project uses Laravel Sail for local development, which is a Docker-based environment.
+
+To start the environment, run:
+
+```bash
+./vendor/bin/sail up
+```
+
+This will start up the necessary Docker containers, including the web server and database.
+
+### 4. Set Up Environment Variables
+
+Copy the `.env.example` file to create your `.env` file:
+
+```bash
+cp .env.example .env
+```
+
+Then, edit the `.env` file to configure your environment variables, such as your database connection and app settings.
+
+### 5. Generate Application Key
+
+Run the following command to generate the application key:
+
+```bash
+./vendor/bin/sail artisan key:generate
+```
+
+### 6. Run Migrations
+
+Migrate the database to set up the necessary tables:
+
+```bash
+./vendor/bin/sail artisan migrate
+```
+
+### 7. Seed Database (Optional)
+
+If you want to seed the database with test data (e.g., sample users, events), run:
+
+```bash
+./vendor/bin/sail artisan db:seed
+```
+
+### 8. Access the API
+
+Once your Sail environment is running, you can access the API at `http://localhost`.
+
+---
+
+## API Documentation
+
+This API allows users, organizers, and admins to interact with the system. Below is a brief overview of the available endpoints:
+
+- **User Routes:**
+  - `POST /api/login`: User login.
+  - `POST /api/register`: User registration.
+  - `POST /api/tickets/{event_id}/buy`: Buy tickets.
+  - `POST /api/tickets/{event_id}/{ticket_id}/transfer`: Transfer tickets to other users.
+
+- **Organizer Routes:**
+  - `POST /api/events`: Create an event.
+  - `POST /api/tickets/{event_id}/{ticket_id}/verify`: Verify ticket.
+
+- **Admin Routes:**
+  - Admin routes are available only through web routes (not API).
+  - Manage users, events, and tickets through the admin panel.
+---
