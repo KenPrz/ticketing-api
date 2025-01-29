@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use App\Enums\UserTypes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -21,6 +23,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'user_type',
     ];
 
     /**
@@ -43,6 +46,37 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'user_type' => UserTypes::class,
         ];
+    }
+
+    /**
+     * Check if the user is a client.
+     *
+     * @return bool
+     */
+    public function isClient(): bool
+    {
+        return $this->user_type === UserTypes::CLIENT;
+    }
+
+    /**
+     * Check if the user is an organizer.
+     *
+     * @return bool
+     */
+    public function isOrganizer(): bool
+    {
+        return $this->user_type === UserTypes::ORGANIZER;
+    }
+
+    /**
+     * Check if the user is an admin.
+     *
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->user_type === UserTypes::ADMIN;
     }
 }
