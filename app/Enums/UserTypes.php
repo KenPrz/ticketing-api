@@ -5,35 +5,35 @@ namespace App\Enums;
 /**
  * Enum for user role types.
  */
-enum UserTypes
+enum UserTypes: string
 {
     /**
      * Client User
      *
-     * @var int
+     * @var string
      */
-    public const CLIENT = 'CLIENT';
+    case CLIENT = 'CLIENT';
 
     /**
      * Organizer User
      *
-     * @var int
+     * @var string
      */
-    public const ORGANIZER = 'ORGANIZER';
+    case ORGANIZER = 'ORGANIZER';
 
     /**
      * Admin User
      *
-     * @var int
+     * @var string
      */
-    public const ADMIN = 'ADMIN';
+    case ADMIN = 'ADMIN';
 
-    /**
-     * Represents the list of user types.
-     */
-    public const LIST = [
-        self::CLIENT,
-        self::ORGANIZER,
-        self::ADMIN,
-    ];
+    public static function list(): array
+    {
+        return [
+            self::CLIENT,
+            self::ORGANIZER,
+            self::ADMIN,
+        ];
+    }
 }

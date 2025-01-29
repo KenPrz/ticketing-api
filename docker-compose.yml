@@ -23,6 +23,8 @@ services:
             - sail
         depends_on:
             - mysql
+            - mailhog
+
     mysql:
         image: 'mysql/mysql-server:8.0'
         ports:
@@ -47,9 +49,32 @@ services:
                 - '-p${DB_PASSWORD}'
             retries: 3
             timeout: 5s
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        restart: always
+        ports:
+            - "8081:80"
+        environment:
+            PMA_HOST: mysql
+            MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+        networks:
+            - sail
+        depends_on:
+            - mysql
+
+    mailhog:
+        image: mailhog/mailhog
+        ports:
+            - "1025:1025"  # SMTP server
+            - "8025:8025"  # Web UI
+        networks:
+            - sail
+
 networks:
     sail:
         driver: bridge
+
 volumes:
     sail-mysql:
         driver: local
