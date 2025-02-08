@@ -57,7 +57,7 @@ class AuthController extends Controller
         try {
             $data = $request->validated();
 
-            $token = $this->authService->register($data);
+            $token = $this->authService->registerClient($data);
 
             return response()->json(['token' => $token], 201);
         } catch (\Exception $e) {

@@ -43,7 +43,7 @@ class AuthService
      *
      * @return array An array containing the token
      */
-    public function register(array $data): array
+    public function registerClient(array $data): array
     {
         // Create the user
         $user = User::create([
