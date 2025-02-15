@@ -91,4 +91,35 @@ class User extends Authenticatable
     {
         return $this->user_type === UserTypes::ADMIN;
     }
+
+    /**
+     * Define the relationship with the OTPs.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function otps()
+    {
+        return $this->hasMany(UserOtp::class);
+    }
+
+    /**
+     * Get the latest OTP for the user.
+     */
+    public function otp()
+    {
+        return $this->hasOne(UserOtp::class)
+            ->latest();
+    }
+
+    /**
+     * Check if the user has a verified OTP.
+     *
+     * @return bool
+     */
+    public function hasVerifiedOtp(): bool
+    {
+        return $this->otps()
+            ->whereNotNull('verified_at')
+            ->exists();
+    }
 }
