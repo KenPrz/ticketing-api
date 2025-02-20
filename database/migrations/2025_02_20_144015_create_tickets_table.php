@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('tickets', function (Blueprint $table) {
             $table->id();
-            $table->binary('qr_code');
+            $table->text('qr_code');
             $table->string('ticket_name');
             $table->foreignId('event_id')
                 ->constrained('events');
