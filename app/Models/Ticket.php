@@ -16,10 +16,20 @@ class Ticket extends Model
         'ticket_name',
         'event_id',
         'owner_id',
+        'ticket_type',
         'ticket_desc',
         'is_used',
         'used_on',
-        'date_time',
+    ];
+
+    /**
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'used_on' => 'datetime',
+        'ticket_type' => 'string',
     ];
 
     /**

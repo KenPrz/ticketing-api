@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\TicketType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -19,6 +20,9 @@ return new class extends Migration
                 ->constrained('events');
             $table->foreignId('owner_id')
                 ->constrained('users');
+            $table->enum('ticket_type',
+                array_map(fn($type) => $type->value, TicketType::cases())
+            );
             $table->text('ticket_desc');
             $table->boolean('is_used')->default(false);
             $table->dateTime('used_on')->nullable();
