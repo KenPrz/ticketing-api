@@ -26,6 +26,10 @@ class EventController extends Controller
 
     /**
      * Display the specified resource.
+     * 
+     * @param string $id The ID of the event to retrieve
+     * 
+     * @return \Illuminate\Http\JsonResponse
      */
     public function show(string $id)
     {
@@ -48,6 +52,10 @@ class EventController extends Controller
 
     /**
      * Show the form for editing the specified resource.
+     * 
+     * @param string $id The ID of the event to edit
+     * 
+     * @return \Illuminate\Http\JsonResponse
      */
     public function edit(string $id)
     {
@@ -70,6 +78,11 @@ class EventController extends Controller
 
     /**
      * Update the specified resource in storage.
+     * 
+     * @param Request $request The request object
+     * @param string $id The ID of the event to update
+     * 
+     * @return \Illuminate\Http\JsonResponse
      */
     public function update(
         Request $request,
@@ -98,6 +111,10 @@ class EventController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     * 
+     * @param string $id The ID of the event to delete
+     * 
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy(string $id)
     {
