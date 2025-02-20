@@ -3,6 +3,7 @@ use App\Http\Controllers\Common\{
     AuthController,
     OtpController,
 };
+use App\Http\Controllers\Events\EventController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login'])
@@ -24,4 +25,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->name('logout');
     Route::get('/user', [AuthController::class, 'user'])
         ->name('user');
+
+    Route::get('/events/{id}', [EventController::class, 'show'])
+        ->name('events.show');
+    Route::post('/events', [EventController::class, 'store'])
+        ->name('events.store');
+    Route::put('/events/{id}', [EventController::class, 'update'])
+        ->name('events.update');
+    Route::delete('/events/{id}', [EventController::class, 'destroy'])
+        ->name('events.destroy');
 });
