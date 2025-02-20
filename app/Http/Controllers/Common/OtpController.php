@@ -52,7 +52,6 @@ class OtpController extends Controller
     public function verifyOtp(OtpRequest $request)
     {
         $data = $request->validated();
-
         // Verify the OTP.
         if($this->otpService->verifyOtp(
             $request->user(),
@@ -73,9 +72,9 @@ class OtpController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function resendOtp()
+    public function resendOtp(Request $request)
     {
-        $user = request()->user();
+        $user = $request->user();
 
         $otp = $this->otpService->generateOtp();
 
