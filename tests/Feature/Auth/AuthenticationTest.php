@@ -32,8 +32,7 @@ class AuthenticationTest extends TestCase
             'password' => 'password123'
         ]);
 
-        $response
-            ->assertStatus(200)
+        $response->assertStatus(200)
             ->assertJsonStructure(['token'])
             ->assertJson([
                 'token' => true // Checks if token exists and is not empty

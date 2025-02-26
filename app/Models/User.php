@@ -105,10 +105,22 @@ class User extends Authenticatable
     /**
      * Get the latest OTP for the user.
      */
-    public function otp()
+    public function latestOtp()
     {
         return $this->hasOne(UserOtp::class)
             ->latest();
+    }
+
+    /**
+     * Check if user is phone verified.
+     * 
+     * @return bool
+     */
+    public function isPhoneVerified(): bool
+    {
+        return $this->otps()
+            ->whereNotNull('verified_at')
+            ->exists();
     }
 
     /**
