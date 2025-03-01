@@ -3,7 +3,7 @@
 use App\Http\Controllers\Events\EventController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth:sanctum', 'phone.verified', 'is.organizer'])->group(function () {
+Route::middleware(['auth:sanctum', 'mobile.verified', 'is.organizer'])->group(function () {
     // Event management routes
     Route::prefix('organizer')->group(function () {
         Route::get('/events', [EventController::class, 'organizerEvents'])

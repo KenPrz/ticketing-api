@@ -30,15 +30,15 @@ class RegistrationTest extends TestCase
         $response = $this->postJson('/api/register', [
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'mobile' => '+639123456789',
             'password' => 'password123',
             'password_confirmation' => 'password123'
         ]);
 
-        $response
-            ->assertStatus(201)
+        $response->assertStatus(201)
             ->assertJsonStructure(['token'])
             ->assertJson([
-                'token' => true // Checks if token exists and is not empty
+                'token' => true,
             ]);
 
         // Verify user was created in database
@@ -170,6 +170,7 @@ class RegistrationTest extends TestCase
         $response = $this->postJson('/api/register', [
             'name' => 'Test User',
             'email' => 'invalid-email',
+            'mobile' => '+639123456789',
             'password' => 'password123',
             'password_confirmation' => 'password123'
         ]);
@@ -192,6 +193,7 @@ class RegistrationTest extends TestCase
         $response = $this->postJson('/api/register', [
             'name' => str_repeat('a', 256),
             'email' => 'test@example.com',
+            'mobile' => '+639123456789',
             'password' => 'password123',
             'password_confirmation' => 'password123'
         ]);
@@ -216,6 +218,7 @@ class RegistrationTest extends TestCase
         $response = $this->postJson('/api/register', [
             'name' => 'Test User',
             'email' => str_repeat('a', 246) . '@example.com',
+            'mobile' => '+639123456789',
             'password' => 'password123',
             'password_confirmation' => 'password123'
         ]);

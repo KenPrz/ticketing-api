@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Enums\UserTypes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -25,6 +26,7 @@ class User extends Authenticatable
         'email',
         'password',
         'user_type',
+        'mobile',
     ];
 
     /**
@@ -97,28 +99,31 @@ class User extends Authenticatable
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function otps()
+    public function otp()
     {
         return $this->hasMany(UserOtp::class);
     }
 
     /**
      * Get the latest OTP for the user.
+     * 
+     * @return UserOtp | null
      */
     public function latestOtp()
     {
-        return $this->hasOne(UserOtp::class)
-            ->latest();
+        return $this->otp()
+            ->latest()
+            ->first();
     }
 
     /**
-     * Check if user is phone verified.
+     * Check if user is mobile verified.
      * 
      * @return bool
      */
     public function isPhoneVerified(): bool
     {
-        return $this->otps()
+        return $this->otp()
             ->whereNotNull('verified_at')
             ->exists();
     }
@@ -128,10 +133,10 @@ class User extends Authenticatable
      *
      * @return bool
      */
-    public function hasVerifiedOtp(): bool
+    public function hasVerifiedOtp(): Attribute
     {
-        return $this->otps()
-            ->whereNotNull('verified_at')
-            ->exists();
+        return Attribute::make(
+            get: fn () => $this->otp()->whereNotNull('verified_at')->exists()
+        );
     }
 }

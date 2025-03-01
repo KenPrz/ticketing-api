@@ -10,7 +10,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->name('home');
     
     // Phone verified routes
-    Route::middleware(['phone.verified'])->group(function () {
+    Route::middleware(['mobile.verified'])->group(function () {
         // Client event viewing routes
         Route::get('/events', [EventController::class, 'index'])
             ->name('events.index');

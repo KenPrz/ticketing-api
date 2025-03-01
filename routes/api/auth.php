@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Common\ApiKeyController;
 use App\Http\Controllers\Common\AuthController;
 use App\Http\Controllers\Common\OtpController;
 use Illuminate\Support\Facades\Route;
@@ -15,6 +16,8 @@ Route::post('/register', [AuthController::class, 'register'])
 
 // Authenticated routes
 Route::middleware(['auth:sanctum'])->group(function () {
+
+    Route::get('/validate', [ApiKeyController::class, 'validateApiKey']);
     // User information
     Route::delete('/logout', [AuthController::class, 'logout'])
         ->name('logout');

@@ -24,6 +24,13 @@ class RegistrationRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'unique:users,email', 'max:255'],
+            'mobile' => [
+                'required',
+                'string',
+                'regex:/^(?:\+639\d{9}|09\d{9}|0\d{1,2}\d{7})$/',
+                'unique:users,mobile',
+                'max:13',
+            ],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ];
     }

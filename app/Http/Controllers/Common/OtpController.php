@@ -58,7 +58,11 @@ class OtpController extends Controller
             $data['otp'])
         ) {
             return response()->json([
-                'message' => 'The OTP has been verified.',
+                'message' => 'The OTP is correct.',
+                'data' => [
+                    'token' => $request->user()->createToken('auth_token')->plainTextToken,
+                    'user' => $request->user(),
+                ]
             ]);
         }
         // Return an error message if the OTP is incorrect.

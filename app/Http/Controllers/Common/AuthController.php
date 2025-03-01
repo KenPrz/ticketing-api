@@ -92,6 +92,8 @@ class AuthController extends Controller
      */
     public function user(Request $request): JsonResponse
     {
-        return response()->json($request->user(), 200);
-    }
+        return response()->json(
+            $request->user()->load([])->append('has_verified_otp'), 200,
+        );
+    }    
 }

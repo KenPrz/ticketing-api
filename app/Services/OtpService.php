@@ -51,17 +51,17 @@ class OtpService {
         User $user,
         string $otp
     ): bool {
-        $userOtp = $user->otp()
-            ->where('code', $otp)
-            ->where('expires_at', '>', now())
-            ->whereNull('verified_at')
-            ->first();
+        $latestOtp = $user->latestOtp();
 
-        if (is_null($userOtp)) {
+        if(is_null($latestOtp)) {
             return false;
         }
 
-        $userOtp->update([
+        if($latestOtp->code !== $otp && $latestOtp->expires_at->isPast()) {
+            return false;
+        }
+
+        $latestOtp->update([
             'verified_at' => now(),
         ]);
 

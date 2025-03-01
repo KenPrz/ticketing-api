@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         // create the admin user
         User::create([
             'name' => 'Admin',
+            'mobile' => '+639123456779',
             'email' => 'admin@email.com',
             'user_type' => UserTypes::ADMIN->value,
             'password' => bcrypt('password'),
@@ -26,6 +27,7 @@ class DatabaseSeeder extends Seeder
         // create the user
         User::create([
             'name' => 'User',
+            'mobile' => '+639123456799',
             'email' => 'user@email.com',
             'user_type' => UserTypes::CLIENT->value,
             'password' => bcrypt('password'),
@@ -34,6 +36,7 @@ class DatabaseSeeder extends Seeder
         // create an organizer
         User::create([
             'name' => 'Organizer',
+            'mobile' => '+639123456780',
             'email' => 'organizer@email.com',
             'user_type' => UserTypes::ORGANIZER->value,
             'password' => bcrypt('password'),
