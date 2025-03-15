@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Events;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Services\EventService;
+use App\Http\Resources\EventResource;
 
 class EventController extends Controller
 {
@@ -35,12 +36,15 @@ class EventController extends Controller
     {
         try {
             $event = $this->eventService->getEvent($id);
+            $data = EventResource::make($event)
+                ->response()
+                ->getData(true);
 
             return response()
-            ->json(
-                ['event' => $event],
-                200
-            );
+                ->json(
+                    ['event' => $data],
+                    200
+                );
         } catch (\Exception $e) {
             return response()
             ->json(

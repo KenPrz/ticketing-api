@@ -96,4 +96,11 @@ class AuthController extends Controller
             $request->user()->load([])->append('has_verified_otp'), 200,
         );
     }    
+
+    public function verificationStatus(Request $request): JsonResponse
+    {
+        return response()->json(
+            $request->user()->load([])->append('has_verified_otp'), 200,
+        );
+    }
 }

@@ -43,7 +43,7 @@ class TicketSeeder extends Seeder
                 $ticketType = $this->faker->randomElement(TicketType::cases());
                 $event->tickets()->create([
                     'qr_code' => $this->generateQrDetails($event, $user),
-                    'ticket_name' => "{$event->event_name} - {$user->name} - {$ticketType->value}",
+                    'ticket_name' => "{$event->name} - {$user->name} - {$ticketType->value}",
                     'owner_id' => $user->id,
                     'ticket_type' => $ticketType->value,
                     'ticket_desc' => $this->faker->sentence,
@@ -65,9 +65,9 @@ class TicketSeeder extends Seeder
      */
     private function generateQrDetails(Event $event, User $user): string
     {
-        return "Event: {$event->event_name}
+        return "Event: {$event->name}
             \nTicket Owner: {$user->name}
-            \nTicket Date: {$event->event_date}
+            \nTicket Date: {$event->date}
             \nCode: {$event->id}-{$user->id}-" . uniqid();
     }
 }

@@ -139,4 +139,14 @@ class User extends Authenticatable
             get: fn () => $this->otp()->whereNotNull('verified_at')->exists()
         );
     }
+
+    /**
+     * Get the events organized by the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function events()
+    {
+        return $this->hasMany(Event::class, 'organizer_id');
+    }
 }

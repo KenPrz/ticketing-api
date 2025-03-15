@@ -38,7 +38,7 @@ class AuthenticationTest extends TestCase
                 'token' => true // Checks if token exists and is not empty
             ]);
 
-        // Verify the token exists in the database
+    // Verify the token exists in the database
         $this->assertDatabaseHas('personal_access_tokens', [
             'tokenable_type' => User::class,
             'tokenable_id' => $user->id

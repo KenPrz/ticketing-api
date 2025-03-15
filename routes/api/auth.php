@@ -17,6 +17,9 @@ Route::post('/register', [AuthController::class, 'register'])
 // Authenticated routes
 Route::middleware(['auth:sanctum'])->group(function () {
 
+    Route::get('/user/verification-status', [AuthController::class, 'verificationStatus'])
+        ->name('verification-status');
+
     Route::get('/validate', [ApiKeyController::class, 'validateApiKey']);
     // User information
     Route::delete('/logout', [AuthController::class, 'logout'])
