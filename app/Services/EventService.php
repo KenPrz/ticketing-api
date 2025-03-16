@@ -102,12 +102,17 @@ class EventService
         float $latitude,
         float $longitude,
     ): Collection {
+        $userPoint = "POINT({$longitude} {$latitude})";
+
+        // Fetch the default radius from the config file (default 50km)
+        $maxDistanceInKm = config('constants.default_radius');
+
         return $this->event
-            ->selectRaw(
-                '*, ( 6371 * acos( cos( radians(?) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( latitude ) ) ) ) AS distance',
-                [$latitude, $longitude, $latitude]
-            )
-            ->having('distance', '<', 50)
+            ->selectRaw("*, ST_Distance_Sphere(
+                POINT(longitude, latitude), 
+                ST_GeomFromText(?)
+            ) / 1000 AS distance", [$userPoint])
+            ->having('distance', '<', $maxDistanceInKm)
             ->orderBy('distance', 'asc')
             ->get();
     }
