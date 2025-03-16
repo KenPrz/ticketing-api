@@ -14,7 +14,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-
         // create the admin user
         User::create([
             'name' => 'Admin',
@@ -45,6 +44,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UserSeeder::class,
             EventSeeder::class,
+            EventTicketTierSeeder::class,
             TicketSeeder::class,
         ]);
     }

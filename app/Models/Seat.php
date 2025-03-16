@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Seats extends Model
+class Seat extends Model
 {
     /**
      * The attributes that are mass assignable.

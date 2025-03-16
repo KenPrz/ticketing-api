@@ -25,6 +25,22 @@ class EventResource extends JsonResource
             'venue' => $this->venue,
             'city' => $this->city,
             'organizer' => $this->organizer->name,
+            'priceRange' => $this->fetchPriceRange(),
         ];
+    }
+
+    /**
+     * Fetch the price range of the event.
+     *
+     * @return string The price range of the event.
+     */
+    private function fetchPriceRange(): string
+    {
+        $minPrice = $this->tickets->min('price');
+        $maxPrice = $this->tickets->max('price');
+
+        return $minPrice === $maxPrice
+            ? '$' . number_format($minPrice, 2)
+            : '$' . number_format($minPrice, 2) . ' - $' . number_format($maxPrice, 2);
     }
 }

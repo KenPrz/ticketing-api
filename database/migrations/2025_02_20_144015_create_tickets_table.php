@@ -17,13 +17,15 @@ return new class extends Migration
             $table->text('qr_code');
             $table->string('ticket_name');
             $table->foreignId('event_id')
-                ->constrained('events');
+                ->constrained('events')
+                ->onDelete('cascade');
             $table->foreignId('owner_id')
                 ->constrained('users');
-            $table->enum('ticket_type',
-                array_map(fn($type) => $type->value, TicketType::cases())
-            );
-            $table->text('ticket_desc');
+            $table->foreignId('ticket_tier_id')
+                ->constrained('event_ticket_tiers')
+                ->onDelete('cascade');
+            $table->string('ticket_type');
+            $table->text('ticket_desc')->nullable();
             $table->boolean('is_used')->default(false);
             $table->dateTime('used_on')->nullable();
             $table->timestamps();

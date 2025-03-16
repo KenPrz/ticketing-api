@@ -36,8 +36,18 @@ class Event extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
+    public function ticketTiers()
+    {
+        return $this->hasMany(EventTicketTier::class, 'event_id');
+    }
+
+    /**
+     * Get all tickets for the event through ticket tiers.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     */
     public function tickets()
     {
-        return $this->hasMany(Ticket::class, 'event_id');
+        return $this->hasManyThrough(Ticket::class, EventTicketTier::class);
     }
 }

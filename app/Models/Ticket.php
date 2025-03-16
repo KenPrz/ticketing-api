@@ -16,6 +16,7 @@ class Ticket extends Model
         'ticket_name',
         'event_id',
         'owner_id',
+        'ticket_tier_id',
         'ticket_type',
         'ticket_desc',
         'is_used',
@@ -49,6 +50,16 @@ class Ticket extends Model
      */
     public function owner()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    /**
+     * Get the ticket tier that the ticket belongs to.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function ticketTier()
+    {
+        return $this->belongsTo(EventTicketTier::class, 'ticket_tier_id');
     }
 }

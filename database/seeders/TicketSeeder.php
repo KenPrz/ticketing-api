@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Enums\TicketType;
 use App\Enums\UserTypes;
 use App\Models\Event;
+use App\Models\EventTicketTier;
 use App\Models\User;
 use Faker\Generator;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -35,19 +36,36 @@ class TicketSeeder extends Seeder
      */
     public function run(): void
     {
-        $events = Event::all();
+        $events = Event::with('ticketTiers')->get();
         $users = User::where('user_type', UserTypes::CLIENT->value)->get();
 
         $events->each(function ($event) use ($users) {
-            $users->each(function ($user) use ($event) {
-                $ticketType = $this->faker->randomElement(TicketType::cases());
-                $event->tickets()->create([
+            // Get ticket tiers for this event
+            $ticketTiers = $event->ticketTiers;
+            
+            if ($ticketTiers->isEmpty()) {
+                return; // Skip events without ticket tiers
+            }
+
+            $users->each(function ($user) use ($event, $ticketTiers) {
+                // Randomly select a ticket tier for this user
+                $ticketTier = $ticketTiers->random();
+                
+                // Create ticket with relationship to both event and ticket tier
+                $ticket = [
                     'qr_code' => $this->generateQrDetails($event, $user),
-                    'ticket_name' => "{$event->name} - {$user->name} - {$ticketType->value}",
+                    'ticket_name' => "{$event->name} - {$user->name} - {$ticketTier->tier_name}",
+                    'event_id' => $event->id,
                     'owner_id' => $user->id,
-                    'ticket_type' => $ticketType->value,
-                    'ticket_desc' => $this->faker->sentence,
-                ]);
+                    'ticket_tier_id' => $ticketTier->id,
+                    'ticket_type' => $ticketTier->ticket_type,
+                    'ticket_desc' => "Ticket for {$ticketTier->tier_name} section",
+                    'is_used' => false,
+                    'used_on' => null,
+                ];
+                
+                // Create the ticket through the relationship
+                $ticketTier->tickets()->create($ticket);
             });
         });
     }
