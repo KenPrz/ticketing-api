@@ -38,6 +38,8 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
             'created_at' => now(),
             'updated_at' => now(),
+            'recent_longitude' => $this->faker->longitude(),
+            'recent_latitude' => $this->faker->latitude(),
         ];
     }
 

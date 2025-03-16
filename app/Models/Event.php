@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\EventCategory;
 use Illuminate\Database\Eloquent\Model;
 
 class Event extends Model
@@ -18,7 +19,16 @@ class Event extends Model
         'time',
         'description',
         'venue',
+        'longitude',
+        'latitude',
         'city',
+    ];
+
+    protected $casts = [
+        'date' => 'date',
+        'longitude' => 'float',
+        'latitude' => 'float',
+        'category' => EventCategory::class,
     ];
 
     /**

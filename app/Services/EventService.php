@@ -74,4 +74,52 @@ class EventService
         
         return $event->delete();
     }
+
+    /**
+     * Fetch the upcoming events in the next one and a half months.
+     * 
+     * @return Collection<Event> The collection of upcoming events
+     */
+    public function upcomingEvents(): Collection
+    {
+        $inOneAndHalfMonths = now()->addMonths(1)->addDays(15);
+        return $this->event
+            ->where('date', '>=', now())
+            ->where('date', '<=', $inOneAndHalfMonths)
+            ->orderBy('date', 'asc')
+            ->get();
+    }
+
+    /**
+     * Fetch the nearby events within a 50km radius.
+     * 
+     * @param  float  $latitude  The latitude of the user
+     * @param  float  $longitude  The longitude of the user
+     * 
+     * @return Collection<Event> The collection of nearby events
+     */
+    public function nearbyEvents(
+        float $latitude,
+        float $longitude,
+    ): Collection {
+        return $this->event
+            ->selectRaw(
+                '*, ( 6371 * acos( cos( radians(?) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( latitude ) ) ) ) AS distance',
+                [$latitude, $longitude, $latitude]
+            )
+            ->having('distance', '<', 50)
+            ->orderBy('distance', 'asc')
+            ->get();
+    }
+
+    /**
+     * Fetch the events that are recommended for the user.
+     * 
+     * @return Collection<Event> The collection of recommended events
+     */
+    public function forYouEvents(): Collection
+    {
+        return $this->event->inRandomOrder()
+            ->limit(5)->get();
+    }
 }

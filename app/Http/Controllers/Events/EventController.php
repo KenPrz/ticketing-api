@@ -67,10 +67,10 @@ class EventController extends Controller
             $event = $this->eventService->getEvent($id);
 
             return response()
-            ->json(
-                ['event' => $event],
-                200
-            );
+                ->json(
+                    ['event' => $event],
+                    200
+                );
         } catch (\Exception $e) {
             return response()
             ->json(

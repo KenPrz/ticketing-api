@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@email.com',
             'user_type' => UserTypes::ADMIN->value,
             'password' => bcrypt('password'),
+            'recent_latitude' => config('constants.default_coordinates.latitude'),
+            'recent_longitude' => config('constants.default_coordinates.longitude'),
         ]);
 
         // create the user
@@ -30,6 +32,8 @@ class DatabaseSeeder extends Seeder
             'email' => 'user@email.com',
             'user_type' => UserTypes::CLIENT->value,
             'password' => bcrypt('password'),
+            'recent_latitude' => config('constants.default_coordinates.latitude'),
+            'recent_longitude' => config('constants.default_coordinates.longitude'),
         ]);
 
         // create an organizer
@@ -39,6 +43,8 @@ class DatabaseSeeder extends Seeder
             'email' => 'organizer@email.com',
             'user_type' => UserTypes::ORGANIZER->value,
             'password' => bcrypt('password'),
+            'recent_latitude' => config('constants.default_coordinates.latitude'),
+            'recent_longitude' => config('constants.default_coordinates.longitude'),
         ]);
 
         $this->call([

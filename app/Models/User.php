@@ -27,6 +27,8 @@ class User extends Authenticatable
         'password',
         'user_type',
         'mobile',
+        'recent_longitude',
+        'recent_latitude',
     ];
 
     /**
@@ -48,6 +50,8 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'user_type' => UserTypes::class,
+        'recent_longitude' => 'float',
+        'recent_latitude' => 'float',
     ];
 
     /**
