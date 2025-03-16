@@ -35,14 +35,14 @@ class EventController extends Controller
     public function show(string $id)
     {
         try {
-            $event = $this->eventService->getEvent($id);
-            $data = EventResource::make($event)
+            $eventData = $this->eventService->getEvent($id);
+            $event = EventResource::make($eventData)
                 ->response()
                 ->getData(true);
 
             return response()
                 ->json(
-                    ['event' => $data],
+                    $event,
                     200
                 );
         } catch (\Exception $e) {

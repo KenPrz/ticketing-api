@@ -48,6 +48,13 @@ class Event extends Model
      */
     public function tickets()
     {
-        return $this->hasManyThrough(Ticket::class, EventTicketTier::class);
+        return $this->hasManyThrough(
+            Ticket::class,
+            EventTicketTier::class,
+            'event_id',
+            'ticket_tier_id',
+            'id',
+            'id',
+        );
     }
 }

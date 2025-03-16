@@ -26,6 +26,11 @@ class EventResource extends JsonResource
             'city' => $this->city,
             'organizer' => $this->organizer->name,
             'priceRange' => $this->fetchPriceRange(),
+            'ticket_tiers' => $this->ticketTiers->map(fn($tier) => [
+                'id' => $tier->id,
+                'tier_name' => $tier->tier_name,
+                'price' => $tier->price,
+            ]),
         ];
     }
 
@@ -36,11 +41,12 @@ class EventResource extends JsonResource
      */
     private function fetchPriceRange(): string
     {
-        $minPrice = $this->tickets->min('price');
-        $maxPrice = $this->tickets->max('price');
+        $prices = $this->ticketTiers->pluck('price')->toArray();
+        $minPrice = min($prices);
+        $maxPrice = max($prices);
 
         return $minPrice === $maxPrice
-            ? '$' . number_format($minPrice, 2)
-            : '$' . number_format($minPrice, 2) . ' - $' . number_format($maxPrice, 2);
+            ? '₱' . number_format($minPrice, 2)
+            : '₱' . number_format($minPrice, 2) . ' - ₱' . number_format($maxPrice, 2);
     }
 }
