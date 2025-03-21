@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Event;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class EventService 
 {
@@ -25,6 +26,21 @@ class EventService
     public function __construct(Event $event)
     {
         $this->event = $event;
+    }
+
+    /**
+     * Get an event by its ID.
+     *
+     * @param  int $perPage  The number of events to show per page.
+     *
+     * @throws ModelNotFoundException  When event is not found
+     *
+     * @return LengthAwarePaginator  The paginated collection of events.
+     */
+    public function getevents(
+        int $perPage = 10,
+    ): LengthAwarePaginator {
+        return $this->event->paginate($perPage);
     }
 
     /**

@@ -26,6 +26,34 @@ class EventController extends Controller
     }
 
     /**
+     * Display a listing of the resource.
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function index()
+    {
+        try {
+            $eventdata = $this->eventService->getEvents();
+
+            $events = EventResource::collection($eventdata)
+                ->response()
+                ->getData(true);
+
+            return response()
+                ->json(
+                    ['events' => $events],
+                    200
+                );
+        } catch (\Exception $e) {
+            return response()
+            ->json(
+                ['message' => $e->getMessage()],
+                400
+            );
+        }
+    }
+
+    /**
      * Display the specified resource.
      * 
      * @param string $id The ID of the event to retrieve
