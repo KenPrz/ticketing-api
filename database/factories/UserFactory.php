@@ -26,13 +26,20 @@ class UserFactory extends Factory
     {
         return [
             'name' => $this->faker->name(),
-            'email' => $this->faker->unique()->safeEmail(),
+            'email' => $this->faker
+                ->unique()
+                ->safeEmail(),
+            'mobile' => $this->faker
+                ->unique()
+                ->numerify('+639#########'),
             'user_type' => $this->faker->randomElement(UserTypes::list())->value,
             'email_verified_at' => now(),
             'password' => Hash::make('password'),
             'remember_token' => Str::random(10),
             'created_at' => now(),
             'updated_at' => now(),
+            'recent_longitude' => $this->faker->longitude(),
+            'recent_latitude' => $this->faker->latitude(),
         ];
     }
 

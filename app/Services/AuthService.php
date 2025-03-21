@@ -49,6 +49,7 @@ class AuthService
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
+            'mobile' => $data['mobile'],
             'password' => bcrypt($data['password']),
             'user_type' => UserTypes::CLIENT->value,
         ]);

@@ -15,7 +15,10 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('email')->unique();
+            $table->string('email')
+                ->unique();
+            $table->string('mobile')
+                ->unique();
             $table->enum('user_type', [
                 UserTypes::CLIENT->value,
                 UserTypes::ORGANIZER->value,
@@ -23,6 +26,10 @@ return new class extends Migration
             ])->default(UserTypes::CLIENT);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->decimal('recent_longitude', 10, 7)
+                ->default(config('constants.default_coordinates.longitude'));
+            $table->decimal('recent_latitude', 10, 7)
+                ->default(config('constants.default_coordinates.latitude'));
             $table->rememberToken();
             $table->timestamps();
         });
