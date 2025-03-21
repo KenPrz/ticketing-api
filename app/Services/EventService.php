@@ -94,16 +94,21 @@ class EventService
     /**
      * Fetch the upcoming events in the next one and a half months.
      * 
-     * @return Collection<Event> The collection of upcoming events
+     * @return Collection<Event> | LengthAwarePaginator The collection of upcoming events
      */
-    public function upcomingEvents(): Collection
+    public function upcomingEvents(bool $isPaginated = false): Collection | LengthAwarePaginator
     {
         $inOneAndHalfMonths = now()->addMonths(1)->addDays(15);
-        return $this->event
+        $query = $this->event
             ->where('date', '>=', now())
             ->where('date', '<=', $inOneAndHalfMonths)
-            ->orderBy('date', 'asc')
-            ->get();
+            ->orderBy('date', 'asc');
+
+            if($isPaginated) {
+                return $query->paginate(config('constants.pagination_limit'));
+            }
+
+        return $query->limit(config('constants.home_limit'))->get();
     }
 
     /**
@@ -112,35 +117,46 @@ class EventService
      * @param  float  $latitude  The latitude of the user
      * @param  float  $longitude  The longitude of the user
      * 
-     * @return Collection<Event> The collection of nearby events
+     * @return Collection<Event> | LengthAwarePaginator The collection of nearby events
      */
     public function nearbyEvents(
         float $latitude,
         float $longitude,
-    ): Collection {
+        bool $isPaginated = false,
+    ): Collection | LengthAwarePaginator {
         $userPoint = "POINT({$longitude} {$latitude})";
 
         // Fetch the default radius from the config file (default 50km)
         $maxDistanceInKm = config('constants.default_radius');
 
-        return $this->event
+        $query =  $this->event
             ->selectRaw("*, ST_Distance_Sphere(
                 POINT(longitude, latitude), 
                 ST_GeomFromText(?)
             ) / 1000 AS distance", [$userPoint])
             ->having('distance', '<', $maxDistanceInKm)
-            ->orderBy('distance', 'asc')
-            ->get();
+            ->orderBy('distance', 'asc');
+        
+        if($isPaginated) {
+            return $query->paginate(config('constants.pagination_limit'));
+        }
+
+        return $query->limit(config('constants.home_limit'))->get();
     }
 
     /**
      * Fetch the events that are recommended for the user.
      * 
-     * @return Collection<Event> The collection of recommended events
+     * @return Collection<Event> | LengthAwarePaginator  The collection of recommended events
      */
-    public function forYouEvents(): Collection
+    public function forYouEvents($isPaginated = false): Collection | LengthAwarePaginator
     {
-        return $this->event->inRandomOrder()
-            ->limit(5)->get();
+        $query = $this->event->inRandomOrder();
+
+        if($isPaginated) {
+            return $query->paginate(config('constants.pagination_limit'));
+        }
+
+        return $query->limit(config('constants.home_limit'))->get();
     }
 }

@@ -39,15 +39,21 @@ class HomeController extends Controller
         $requestData = $request->user()
             ->only(['recent_latitude', 'recent_longitude']);
         
+        $upcomingEvents = $this->eventService->upcomingEvents();
+        $nearbyEvents = $this->eventService->nearbyEvents(
+            $requestData['recent_latitude'],
+            $requestData['recent_longitude'],
+        );
+        $forYouEvents = $this->eventService->forYouEvents();
+        
         $feedData = [
-            'upcoming_events' => EventResource::collection($this->eventService->upcomingEvents())
+            'upcoming_events' => EventResource::collection($upcomingEvents)
                 ->response()
                 ->getData(true),
-            'nearby_events' => EventResource::collection($this->eventService->nearbyEvents(
-                $requestData['recent_latitude'],
-                $requestData['recent_longitude'],
-            ))->response()->getData(true),
-            'for_you' => EventResource::collection($this->eventService->forYouEvents())
+            'nearby_events' => EventResource::collection($nearbyEvents)
+                ->response()
+                ->getData(true),
+            'for_you' => EventResource::collection($forYouEvents)
                 ->response()->getData(true),
         ];
 
