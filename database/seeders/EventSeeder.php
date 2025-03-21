@@ -2,17 +2,26 @@
 
 namespace Database\Seeders;
 
+use App\Enums\EventImageType;
 use App\Enums\UserTypes;
 use App\Models\{
     Event,
     User,
 };
+use App\Models\EventImage;
 use Faker\Generator;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class EventSeeder extends Seeder
 {
+
+    /**
+     * The base image link for event images.
+     *
+     * @var string
+     */
+    private const IMAGE_BASE_LINK = 'https://placehold.co/600x400/';
 
     /**
      * The events to seed.
@@ -476,8 +485,9 @@ class EventSeeder extends Seeder
     public function run(): void
     {
         $events = collect(self::EVENTS);
+
         $events->each(function ($event) {
-            Event::create([
+            $event = Event::create([
                 'name' => $event['name'],
                 'category' => $event['category'],
                 'organizer_id' => User::where('user_type', UserTypes::ORGANIZER->value)
@@ -491,6 +501,57 @@ class EventSeeder extends Seeder
                 'longitude' => $event['longitude'],
                 'latitude' => $event['latitude'],
             ]);
+
+            $color = strtolower($this->faker->colorName());
+
+            // Create a Banner
+            EventImage::create([
+                'event_id' => $event->id,
+                'image_url' => $this->imageLinkGenerator(
+                    $event,
+                    EventImageType::BANNER,
+                    $color,
+                ),
+                'image_type' => EventImageType::BANNER->value,
+            ]);
+
+            // Create a Thumbnail
+            EventImage::create([
+                'event_id' => $event->id,
+                'image_url' => $this->imageLinkGenerator(
+                    $event,
+                    EventImageType::THUMBNAIL,
+                    $color,
+                ),
+                'image_type' => EventImageType::THUMBNAIL->value,
+            ]);
+
+            // Create a venue image
+            EventImage::create([
+                'event_id' => $event->id,
+                'image_url' => $this->imageLinkGenerator(
+                    $event,
+                    EventImageType::VENUE,
+                    $color,
+                ),
+                'image_type' => EventImageType::VENUE->value,
+            ]);
+
+            // Determine the number of images to create for the gallery
+            $numOfImages = rand(2, 5);
+
+            // Create a Gallery
+            for ($i = 0; $i < $numOfImages; $i++) {
+                EventImage::create([
+                    'event_id' => $event->id,
+                    'image_url' => $this->imageLinkGenerator(
+                        $event,
+                        EventImageType::GALLERY,
+                        $color,
+                    ),
+                    'image_type' => EventImageType::GALLERY->value,
+                ]);
+            }
         });
 
         $organizerIds = Event::all()->pluck('organizer_id');
@@ -510,5 +571,26 @@ class EventSeeder extends Seeder
                 'city' => $this->faker->city(),
             ]);
         });
+    }
+
+    /**
+     * Generate an image link for the event.
+     *
+     * @param \App\Models\Event $event
+     * @param \App\Enums\EventImageType $type
+     * @param string $color The color to use for the image
+     *
+     * @return string
+     */
+    private function imageLinkGenerator(
+        Event $event,
+        EventImageType $type,
+        string $color,
+    ) {
+        // Use urlencode to properly encode the parameters
+        $encodedName = urlencode($event->name);
+        $encodedType = urlencode($type->value);
+        
+        return self::IMAGE_BASE_LINK . $color . '/white?text=' . $encodedType . '+' . $encodedName;
     }
 }

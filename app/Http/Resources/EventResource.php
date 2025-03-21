@@ -19,6 +19,12 @@ class EventResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
+            'images' => [
+                'banner' => $this->banner->image_url,
+                'thumbnail' => $this->thumbnail->image_url,
+                'venue' => $this->venueImage->image_url,
+                'gallery' => $this->gallery->pluck('image_url')->toArray(),
+            ],
             'date' => DateFormatterHelper::dayShort($this->date),
             'formattedDate' => DateFormatterHelper::dayFull($this->date),
             'time' => $this->time,

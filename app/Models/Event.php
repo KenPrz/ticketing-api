@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\EventCategory;
+use App\Enums\EventImageType;
 use Illuminate\Database\Eloquent\Model;
 
 class Event extends Model
@@ -66,5 +67,59 @@ class Event extends Model
             'id',
             'id',
         );
+    }
+
+    /**
+     * Get the images for the event.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function images()
+    {
+        return $this->hasMany(EventImage::class, 'event_id');
+    }
+
+    /**
+     * Get the banner image for the event.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function banner()
+    {
+        return $this->hasOne(EventImage::class, 'event_id')
+            ->where('image_type', EventImageType::BANNER);
+    }
+
+    /**
+     * Get the thumbnail image for the event.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function thumbnail()
+    {
+        return $this->hasOne(EventImage::class, 'event_id')
+            ->where('image_type', EventImageType::THUMBNAIL);
+    }
+
+    /**
+     * Get the venue image for the event.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function venueImage()
+    {
+        return $this->hasOne(EventImage::class, 'event_id')
+            ->where('image_type', EventImageType::VENUE);
+    }
+
+    /**
+     * Get the gallery images for the event.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function gallery()
+    {
+        return $this->hasMany(EventImage::class, 'event_id')
+            ->where('image_type', EventImageType::GALLERY);
     }
 }
