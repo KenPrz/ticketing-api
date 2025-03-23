@@ -52,6 +52,7 @@ class DatabaseSeeder extends Seeder
             EventSeeder::class,
             EventTicketTierSeeder::class,
             TicketSeeder::class,
+            EventBookmarkSeeder::class,
         ]);
     }
 }

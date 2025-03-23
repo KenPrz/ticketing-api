@@ -69,6 +69,21 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the user's bookmarks.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function eventBookmarks()
+    {
+        return $this->belongsToMany(
+            Event::class,
+            'event_bookmarks',
+            'user_id',
+            'event_id',
+        );
+    }
+
+    /**
      * Check if the user is a client.
      *
      * @return bool

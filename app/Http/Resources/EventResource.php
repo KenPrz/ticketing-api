@@ -27,6 +27,7 @@ class EventResource extends JsonResource
                 'merchandise' => $this->fetchMerch(),
             ],
             'date' => DateFormatterHelper::dayShort($this->date),
+            'category' => $this->category->name,
             'formattedDate' => DateFormatterHelper::dayFull($this->date),
             'time' => $this->time,
             'venue' => $this->venue,
