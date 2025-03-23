@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Event;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -158,5 +159,15 @@ class EventService
         }
 
         return $query->limit(config('constants.home_limit'))->get();
+    }
+
+    /**
+     * Fetch the events that are trending.
+     * 
+     * @return Collection<Event> | LengthAwarePaginator  The collection of trending events
+     */
+    public function getBookmarkedEvents(User $user): Collection
+    {
+        return $user->eventBookmarks;
     }
 }

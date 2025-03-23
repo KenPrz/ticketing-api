@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\EventCategory;
 use App\Enums\EventImageType;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class Event extends Model
 {
@@ -31,6 +32,29 @@ class Event extends Model
         'latitude' => 'float',
         'category' => EventCategory::class,
     ];
+
+    /**
+     * The attributes that should be appended to the model.
+     *
+     * @var array
+     */
+    protected $appends = ['is_bookmarked'];
+
+    /**
+     * Get the category of the event.
+     *
+     * @return bool check if the event is bookmarked by the authenticated user.
+     */
+    public function getIsBookmarkedAttribute()
+    {
+        if (!Auth::check()) {
+            return false;
+        }
+        
+        return $this->eventBookmarks()
+            ->where('user_id', Auth::id())
+            ->exists();
+    }
 
     /**
      * Get the user that organizes the event.
@@ -131,5 +155,20 @@ class Event extends Model
     public function merchandise()
     {
         return $this->hasMany(Merchandise::class, 'event_id');
+    }
+
+    /**
+     * Get the users who have bookmarked this event.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function eventBookmarks()
+    {
+        return $this->belongsToMany(
+            User::class,
+            'event_bookmarks',
+            'event_id',
+            'user_id',
+        );
     }
 }
