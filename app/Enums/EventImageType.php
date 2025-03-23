@@ -25,6 +25,11 @@ enum EventImageType: string
     case VENUE = 'VENUE';
 
     /**
+     * Represents the event's merchandise image.
+     */
+    case MERCHANDISE = 'MERCHANDISE';
+
+    /**
      * Get list of all ticket types.
      *
      * @return array<EventImageType>
@@ -36,6 +41,7 @@ enum EventImageType: string
             self::THUMBNAIL,
             self::GALLERY,
             self::VENUE,
+            self::MERCHANDISE,
         ];
     }
 }

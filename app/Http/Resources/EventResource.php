@@ -24,6 +24,7 @@ class EventResource extends JsonResource
                 'thumbnail' => $this->thumbnail->image_url,
                 'venue' => $this->venueImage->image_url,
                 'gallery' => $this->gallery->pluck('image_url')->toArray(),
+                'merchandise' => $this->fetchMerch(),
             ],
             'date' => DateFormatterHelper::dayShort($this->date),
             'formattedDate' => DateFormatterHelper::dayFull($this->date),
@@ -54,5 +55,19 @@ class EventResource extends JsonResource
         return $minPrice === $maxPrice
             ? '₱' . number_format($minPrice, 2)
             : '₱' . number_format($minPrice, 2) . ' - ₱' . number_format($maxPrice, 2);
+    }
+
+    private function fetchMerch(): array
+    {
+        return $this->merchandise->map(function($item) {
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'price' => $item->price,
+                'image' => $item->image ? $item->image->image_url : null,
+                'description' => $item->description,
+                'stock' => $item->stock,
+            ];
+        })->toArray();
     }
 }

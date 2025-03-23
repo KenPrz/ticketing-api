@@ -72,54 +72,64 @@ class Event extends Model
     /**
      * Get the images for the event.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
      */
     public function images()
     {
-        return $this->hasMany(EventImage::class, 'event_id');
+        return $this->morphMany(EventImage::class, 'imageable');
     }
 
     /**
      * Get the banner image for the event.
      * 
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\MorphOne
      */
     public function banner()
     {
-        return $this->hasOne(EventImage::class, 'event_id')
+        return $this->morphOne(EventImage::class, 'imageable')
             ->where('image_type', EventImageType::BANNER);
     }
 
     /**
      * Get the thumbnail image for the event.
      * 
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\MorphOne
      */
     public function thumbnail()
     {
-        return $this->hasOne(EventImage::class, 'event_id')
+        return $this->morphOne(EventImage::class, 'imageable')
             ->where('image_type', EventImageType::THUMBNAIL);
     }
 
     /**
      * Get the venue image for the event.
      * 
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\MorphOne
      */
     public function venueImage()
     {
-        return $this->hasOne(EventImage::class, 'event_id')
+        return $this->morphOne(EventImage::class, 'imageable')
             ->where('image_type', EventImageType::VENUE);
     }
 
     /**
      * Get the gallery images for the event.
      * 
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
      */
     public function gallery()
     {
-        return $this->hasMany(EventImage::class, 'event_id')
+        return $this->morphMany(EventImage::class, 'imageable')
             ->where('image_type', EventImageType::GALLERY);
+    }
+
+    /**
+     * Get the merchandise items for the event.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function merchandise()
+    {
+        return $this->hasMany(Merchandise::class, 'event_id');
     }
 }

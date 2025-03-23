@@ -3,12 +3,17 @@
 namespace Database\Seeders;
 
 use App\Enums\EventImageType;
+use App\Enums\MerchandiseStatus;
 use App\Enums\UserTypes;
 use App\Models\{
     Event,
+    EventImage as Image,
+    Merchandise,
     User,
 };
-use App\Models\EventImage;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Http\File;
 use Faker\Generator;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -23,7 +28,7 @@ class EventSeeder extends Seeder
      */
     private const IMAGE_BASE_LINK = 'https://placehold.co/600x400/';
 
-    /**
+/**
      * The events to seed.
      *
      * @var array
@@ -505,8 +510,9 @@ class EventSeeder extends Seeder
             $color = strtolower($this->faker->colorName());
 
             // Create a Banner
-            EventImage::create([
-                'event_id' => $event->id,
+            Image::create([
+                'imageable_id' => $event->id,
+                'imageable_type' => Event::class,
                 'image_url' => $this->imageLinkGenerator(
                     $event,
                     EventImageType::BANNER,
@@ -516,8 +522,9 @@ class EventSeeder extends Seeder
             ]);
 
             // Create a Thumbnail
-            EventImage::create([
-                'event_id' => $event->id,
+            Image::create([
+                'imageable_id' => $event->id,
+                'imageable_type' => Event::class,
                 'image_url' => $this->imageLinkGenerator(
                     $event,
                     EventImageType::THUMBNAIL,
@@ -527,8 +534,9 @@ class EventSeeder extends Seeder
             ]);
 
             // Create a venue image
-            EventImage::create([
-                'event_id' => $event->id,
+            Image::create([
+                'imageable_id' => $event->id,
+                'imageable_type' => Event::class,
                 'image_url' => $this->imageLinkGenerator(
                     $event,
                     EventImageType::VENUE,
@@ -542,14 +550,42 @@ class EventSeeder extends Seeder
 
             // Create a Gallery
             for ($i = 0; $i < $numOfImages; $i++) {
-                EventImage::create([
-                    'event_id' => $event->id,
+                Image::create([
+                    'imageable_id' => $event->id,
+                    'imageable_type' => Event::class,
                     'image_url' => $this->imageLinkGenerator(
                         $event,
                         EventImageType::GALLERY,
                         $color,
                     ),
                     'image_type' => EventImageType::GALLERY->value,
+                ]);
+            }
+
+            // Create merchandise items with images
+            $numOfMerchandise = rand(1, 6);
+
+            for ($i = 0; $i < $numOfMerchandise; $i++) {
+                // Create a merchandise item for this event
+                $merchandise = Merchandise::create([
+                    'event_id' => $event->id,
+                    'name' => $this->faker->words(rand(2, 4), true),
+                    'description' => $this->faker->sentence(rand(5, 10)),
+                    'price' => $this->faker->randomFloat(2, 10, 100),
+                    'stock' => $this->faker->numberBetween(10, 1000),
+                    'status' => $this->faker->randomElement(MerchandiseStatus::cases()),
+                ]);
+                
+                // Create the merchandise image using polymorphic relationship
+                Image::create([
+                    'imageable_id' => $merchandise->id,
+                    'imageable_type' => Merchandise::class,
+                    'image_url' => $this->imageLinkGenerator(
+                        $merchandise,
+                        EventImageType::MERCHANDISE,
+                        $color,
+                    ),
+                    'image_type' => EventImageType::MERCHANDISE->value,
                 ]);
             }
         });
@@ -574,23 +610,45 @@ class EventSeeder extends Seeder
     }
 
     /**
-     * Generate an image link for the event.
+     * Generate an image link for the event or merchandise.
      *
-     * @param \App\Models\Event $event
+     * @param \Illuminate\Database\Eloquent\Model $model
      * @param \App\Enums\EventImageType $type
-     * @param string $color The color to use for the image
+     * @param string $color The color to use for the image (not used anymore)
      *
      * @return string
      */
     private function imageLinkGenerator(
-        Event $event,
+        $model,
         EventImageType $type,
         string $color,
     ) {
-        // Use urlencode to properly encode the parameters
-        $encodedName = urlencode($event->name);
-        $encodedType = urlencode($type->value);
+        // Get sample images from public directory
+        $sampleImages = glob(public_path('sample_images/*.png'));
         
-        return self::IMAGE_BASE_LINK . $color . '/white?text=' . $encodedType . '+' . $encodedName;
+        // Check if images exist
+        if (empty($sampleImages)) {
+            // Fallback to placeholder if no sample images found
+            return self::IMAGE_BASE_LINK . $color . '/white?text=' . urlencode($type->value) . '+' . urlencode($model->name);
+        }
+
+        // Select a random image
+        $randomImage = $sampleImages[array_rand($sampleImages)];
+        
+        // Determine storage path based on image type
+        $storagePath = 'images/' . strtolower($type->value);
+        
+        // Create a unique filename
+        $filename = Str::uuid() . '.png';
+        
+        // Copy the image to the storage path
+        $imagePath = Storage::disk('public')->putFileAs(
+            $storagePath, 
+            new File($randomImage), 
+            $filename
+        );
+        
+        // Generate the URL for accessing the image using asset helper
+        return asset("storage/{$imagePath}");
     }
 }

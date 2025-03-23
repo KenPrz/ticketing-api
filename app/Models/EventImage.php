@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\EventImageType;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class EventImage extends Model
 {
@@ -20,7 +21,6 @@ class EventImage extends Model
      * @var array
      */
     protected $fillable = [
-        'event_id',
         'image_url',
         'image_type',
     ];
@@ -31,18 +31,14 @@ class EventImage extends Model
      * @var array
      */
     protected $casts = [
-        'event_id' => 'integer',
-        'image_url' => 'string',
         'image_type' => EventImageType::class,
     ];
 
     /**
-     * Get the event that the image belongs to.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * Get the parent imageable model.
      */
-    public function event()
+    public function imageable(): MorphTo
     {
-        return $this->belongsTo(Event::class, 'event_id');
+        return $this->morphTo();
     }
 }
