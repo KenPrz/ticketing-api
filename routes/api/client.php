@@ -9,6 +9,8 @@ Route::prefix('/clients')
     ->middleware(['auth:sanctum'])->group(function () {
         // Phone verified routes
         Route::middleware(['mobile.verified'])->group(function () {
+            Route::post('/location-update', [HomeController::class, 'updateLocation'])
+                ->name('location.update');
             // Home dashboard
             Route::get('/', [HomeController::class, 'index'])
                 ->name('home');
