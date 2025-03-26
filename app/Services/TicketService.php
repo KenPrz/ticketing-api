@@ -2,10 +2,16 @@
 
 namespace App\Services;
 
-use App\Models\Ticket;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-
+use App\Models\{
+    Ticket,
+    Seat,
+    User,
+};
+use Illuminate\Database\Eloquent\{
+    Collection,
+    ModelNotFoundException,
+};
+use Illuminate\Support\Facades\DB;
 class TicketService 
 {
     /**
@@ -26,29 +32,60 @@ class TicketService
     }
 
     /**
-     * Create a new ticket.
+     * Get all tickets for the authenticated user.
      *
-     * @param array $data The ticket data
-     *
-     * @return Ticket The created ticket instance
+     * @param \App\Models\User $user
+     * @return Collection<int, Ticket>
      */
-    public function createTicket(array $data): Ticket
+    public function getMyTickets(User $user)
     {
-        return $this->ticket->create($data);
+        return $this->ticket->where('owner_id', $user->id)
+            ->with(['event', 'ticketTier', 'purchase', 'seat'])
+            ->get();
     }
 
     /**
-     * Get a ticket by its ID.
+     * Create a new ticket with related seat.
+     *
+     * @param array $data The ticket data
+     *
+     * @return Ticket The created ticket instance with seat relationship
+     */
+    public function createTicket(array $data): Ticket
+    {
+        // Start a transaction to ensure ticket and seat are created together
+        return DB::transaction(function () use ($data) {
+            // Create the ticket
+            $ticket = $this->ticket->create($data);
+            
+            // Create an associated seat if seat data is provided
+            if (isset($data['seat'])) {
+                $seatData = $data['seat'];
+                $seatData['ticket_id'] = $ticket->id;
+                $seatData['event_id'] = $ticket->event_id;
+                $seat = Seat::create($seatData);
+
+                // Load the seat relationship
+                $ticket->load('seat');
+            }
+            
+            return $ticket;
+        });
+    }
+
+    /**
+     * Get a ticket by its ID with related data.
      *
      * @param string $id The ID of the ticket to retrieve
+     * @param array $relations Relations to eager load
      *
      * @throws ModelNotFoundException When ticket is not found
      *
-     * @return Ticket The found ticket instance
+     * @return Ticket The found ticket instance with loaded relationships
      */
-    public function getTicket(string $id): Ticket
+    public function getTicket(string $id, array $relations = ['event', 'ticketTier', 'owner', 'purchase.purchaser', 'seat']): Ticket
     {
-        return $this->ticket->findOrFail($id);
+        return $this->ticket->with($relations)->findOrFail($id);
     }
 
     /**
@@ -97,42 +134,80 @@ class TicketService
     public function transferTicket(string $id, string $userId): Ticket
     {
         $ticket = $this->getTicket($id);
-        $ticket->update(['user_id' => $userId]);
+        $ticket->update(['owner_id' => $userId]);
 
-        return $ticket->fresh();
+        return $ticket->fresh(['owner']);
     }
 
     /**
-     * Cancel a ticket.
+     * Mark a ticket as used.
      *
-     * @param string $id The ID of the ticket to cancel
-     *
-     * @throws ModelNotFoundException When ticket is not found
-     *
-     * @return Ticket The cancelled ticket instance
-     */
-    public function cancelTicket(string $id): Ticket
-    {
-        $ticket = $this->getTicket($id);
-        $ticket->update(['status' => 'cancelled']);
-
-        return $ticket->fresh();
-    }
-
-    /**
-     * Use a ticket.
-     *
-     * @param string $id The ID of the ticket to use
+     * @param string $id The ID of the ticket to mark as used
      *
      * @throws ModelNotFoundException When ticket is not found
      *
      * @return Ticket The used ticket instance
      */
-    public function useTicket(string $id): Ticket
+    public function checkInTicket(string $id): Ticket
     {
         $ticket = $this->getTicket($id);
-        $ticket->update(['status' => 'used']);
+        
+        if ($ticket->is_used) {
+            throw new \Exception('Ticket has already been used.');
+        }
+        
+        $ticket->update([
+            'is_used' => true,
+            'used_on' => now(),
+        ]);
+        
+        // If this ticket has a seat, mark it as occupied
+        if ($ticket->seat) {
+            $ticket->seat->update(['is_occupied' => true]);
+        }
 
-        return $ticket->fresh();
+        return $ticket->fresh(['seat']);
+    }
+    
+    /**
+     * Get all tickets for a specific event.
+     *
+     * @param string $eventId The ID of the event
+     *
+     * @return Collection Collection of tickets for the event
+     */
+    public function getEventTickets(string $eventId): Collection
+    {
+        return $this->ticket->where('event_id', $eventId)
+            ->with(['ticketTier', 'owner', 'seat'])
+            ->get();
+    }
+    
+    /**
+     * Get all tickets for a specific user.
+     *
+     * @param string $userId The ID of the user
+     *
+     * @return Collection Collection of tickets owned by the user
+     */
+    public function getUserTickets(string $userId): Collection
+    {
+        return $this->ticket->where('owner_id', $userId)
+            ->with(['event', 'ticketTier', 'purchase', 'seat'])
+            ->get();
+    }
+    
+    /**
+     * Get all tickets for a specific purchase.
+     *
+     * @param string $purchaseId The ID of the purchase
+     *
+     * @return Collection Collection of tickets in the purchase
+     */
+    public function getPurchaseTickets(string $purchaseId): Collection
+    {
+        return $this->ticket->where('purchase_id', $purchaseId)
+            ->with(['event', 'ticketTier', 'owner', 'seat'])
+            ->get();
     }
 }

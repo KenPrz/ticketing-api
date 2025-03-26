@@ -24,6 +24,10 @@ return new class extends Migration
             $table->foreignId('ticket_tier_id')
                 ->constrained('event_ticket_tiers')
                 ->onDelete('cascade');
+            $table->foreignId('purchase_id')
+                ->nullable()
+                ->constrained('purchases')
+                ->nullOnDelete();
             $table->string('ticket_type');
             $table->text('ticket_desc')->nullable();
             $table->boolean('is_used')->default(false);

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TicketType;
 use Illuminate\Database\Eloquent\Model;
 
 class Ticket extends Model
@@ -17,6 +18,7 @@ class Ticket extends Model
         'event_id',
         'owner_id',
         'ticket_tier_id',
+        'purchase_id',
         'ticket_type',
         'ticket_desc',
         'is_used',
@@ -30,7 +32,8 @@ class Ticket extends Model
      */
     protected $casts = [
         'used_on' => 'datetime',
-        'ticket_type' => 'string',
+        'ticket_type' => TicketType::class,
+        'is_used' => 'boolean',
     ];
 
     /**
@@ -44,7 +47,7 @@ class Ticket extends Model
     }
 
     /**
-     * Get the user that uses the ticket.
+     * Get the user that owns the ticket.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
@@ -61,5 +64,25 @@ class Ticket extends Model
     public function ticketTier()
     {
         return $this->belongsTo(EventTicketTier::class, 'ticket_tier_id');
+    }
+
+    /**
+     * Get the purchase that this ticket belongs to.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function purchase()
+    {
+        return $this->belongsTo(Purchase::class, 'purchase_id');
+    }
+
+    /**
+     * Get the seat associated with this ticket.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function seat()
+    {
+        return $this->hasOne(Seat::class, 'ticket_id');
     }
 }

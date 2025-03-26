@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Enums\UserTypes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -80,6 +78,43 @@ class User extends Authenticatable
             'event_bookmarks',
             'user_id',
             'event_id',
+        );
+    }
+
+    /**
+     * Get all purchases made by the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function purchases()
+    {
+        return $this->hasMany(Purchase::class, 'purchased_by');
+    }
+
+    /**
+     * Get all tickets owned by the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function tickets()
+    {
+        return $this->hasMany(Ticket::class, 'owner_id');
+    }
+
+    /**
+     * Get all seats assigned to the user through tickets.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     */
+    public function seats()
+    {
+        return $this->hasManyThrough(
+            Seat::class,
+            Ticket::class,
+            'owner_id',
+            'ticket_id',
+            'id',
+            'id',
         );
     }
 

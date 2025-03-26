@@ -94,6 +94,33 @@ class Event extends Model
     }
 
     /**
+     * Get all purchases for this event.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function purchases()
+    {
+        return $this->hasMany(Purchase::class, 'event_id');
+    }
+
+    /**
+     * Get all seats for this event through tickets.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     */
+    public function seats()
+    {
+        return $this->hasManyThrough(
+            Seat::class,
+            Ticket::class,
+            'event_id',
+            'ticket_id',
+            'id',
+            'id'
+        );
+    }
+
+    /**
      * Get the images for the event.
      *
      * @return \Illuminate\Database\Eloquent\Relations\MorphMany

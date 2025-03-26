@@ -38,8 +38,8 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
             'created_at' => now(),
             'updated_at' => now(),
-            'recent_longitude' => $this->faker->longitude(),
-            'recent_latitude' => $this->faker->latitude(),
+            'recent_longitude' => $this->generateNcrCoordinates()['longitude'],
+            'recent_latitude' => $this->generateNcrCoordinates()['latitude'],
         ];
     }
 
@@ -51,5 +51,43 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
         ]);
+    }
+
+    /**
+     * Generate random coordinates within NCR municipalities
+     * 
+     * @return array
+     */
+    protected function generateNcrCoordinates(): array
+    {
+        $ncrAreas = [
+            'Manila' => ['lat' => 14.5995, 'lng' => 120.9842],
+            'Quezon City' => ['lat' => 14.6760, 'lng' => 121.0437],
+            'Makati' => ['lat' => 14.5547, 'lng' => 121.0244],
+            'Taguig' => ['lat' => 14.5176, 'lng' => 121.0509],
+            'Pasig' => ['lat' => 14.5764, 'lng' => 121.0851],
+            'Parañaque' => ['lat' => 14.4793, 'lng' => 121.0198],
+            'Pasay' => ['lat' => 14.5378, 'lng' => 121.0014],
+            'Caloocan' => ['lat' => 14.6507, 'lng' => 120.9830],
+            'Muntinlupa' => ['lat' => 14.4193, 'lng' => 121.0413],
+            'Marikina' => ['lat' => 14.6507, 'lng' => 121.1029],
+            'Valenzuela' => ['lat' => 14.7011, 'lng' => 120.9830],
+            'Las Piñas' => ['lat' => 14.4473, 'lng' => 120.9837],
+            'Mandaluyong' => ['lat' => 14.5794, 'lng' => 121.0359],
+            'San Juan' => ['lat' => 14.6019, 'lng' => 121.0355],
+            'Navotas' => ['lat' => 14.6667, 'lng' => 120.9427],
+            'Malabon' => ['lat' => 14.6681, 'lng' => 120.9625],
+            'Pateros' => ['lat' => 14.5456, 'lng' => 121.0685],
+        ];
+
+        // Select a random NCR area
+        $area = array_rand($ncrAreas);
+        $coordinates = $ncrAreas[$area];
+
+        // Add small random variation (±0.01 degrees ≈ 1km)
+        return [
+            'latitude' => $coordinates['lat'] + $this->faker->randomFloat(6, -0.01, 0.01),
+            'longitude' => $coordinates['lng'] + $this->faker->randomFloat(6, -0.01, 0.01),
+        ];
     }
 }

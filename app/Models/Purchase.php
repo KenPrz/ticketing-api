@@ -46,4 +46,31 @@ class Purchase extends Model
     {
         return $this->belongsTo(User::class, 'purchased_by');
     }
+
+    /**
+     * Get the tickets associated with this purchase.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function tickets()
+    {
+        return $this->hasMany(Ticket::class, 'purchase_id');
+    }
+
+    /**
+     * Get all seats through tickets.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     */
+    public function seats()
+    {
+        return $this->hasManyThrough(
+            Seat::class,
+            Ticket::class,
+            'purchase_id',
+            'ticket_id',
+            'id',   
+            'id',
+        );
+    }
 }
