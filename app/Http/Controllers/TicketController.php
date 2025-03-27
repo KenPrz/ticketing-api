@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\TicketResource;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Services\TicketService;
@@ -21,6 +22,33 @@ class TicketController extends Controller
     public function __construct(TicketService $ticketService)
     {
         $this->ticketService = $ticketService;
+    }
+
+    /**
+     * Get the Ticket of the authenticated user.
+     * 
+     * @param Request $request The request object
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function index(Request $request)
+    {
+        try {
+            $tickets = $this->ticketService->getMyTickets($request->user());
+            $data = TicketResource::collection($tickets)
+                ->response()
+                ->getData(true);
+            return response()
+                ->json(
+                    $data,
+                    200
+                );
+        } catch (\Exception $e) {
+            return response()
+                ->json(
+                    ['message' => $e->getMessage()],
+                    400
+                );
+        }
     }
 
     /**
@@ -176,64 +204,6 @@ class TicketController extends Controller
             $data = $request->validated();
 
             $ticket = $this->ticketService->transferTicket($id, $data['user_id']);
-
-            return response()
-                ->json(
-                    ['ticket' => $ticket],
-                    200
-                );
-        } catch (\Exception $e) {
-            return response()
-                ->json(
-                    ['message' => $e->getMessage()],
-                    400
-                );
-        }
-    }
-
-    /**
-     * Cancel the ticket.
-     * 
-     * @param Request $request The request object
-     * @param string $id The ID of the ticket to cancel
-     * 
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function cancel(
-        Request $request,
-        string $id
-    ) {
-        try {
-            $ticket = $this->ticketService->cancelTicket($id);
-
-            return response()
-                ->json(
-                    ['ticket' => $ticket],
-                    200
-                );
-        } catch (\Exception $e) {
-            return response()
-                ->json(
-                    ['message' => $e->getMessage()],
-                    400
-                );
-        }
-    }
-
-    /**
-     * Use the ticket.
-     * 
-     * @param Request $request The request object
-     * @param string $id The ID of the ticket to use
-     * 
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function use(
-        Request $request,
-        string $id
-    ) {
-        try {
-            $ticket = $this->ticketService->useTicket($id);
 
             return response()
                 ->json(

@@ -65,4 +65,32 @@ class HomeController extends Controller
                 200
             );
     }
+
+    /**
+     * Update the user's location.
+     *
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateLocation(Request $request)
+    {
+        $request->validate([
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+        ]);
+
+        $request->user()->update([
+            'recent_latitude' => $request->latitude,
+            'recent_longitude' => $request->longitude,
+        ]);
+
+        return response()
+            ->json(
+                [
+                    'message' => 'Location updated successfully',
+                ],
+                200
+            );
+    }
 }

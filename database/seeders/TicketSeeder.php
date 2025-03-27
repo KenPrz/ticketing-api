@@ -6,10 +6,16 @@ use App\Enums\TicketType;
 use App\Enums\UserTypes;
 use App\Models\Event;
 use App\Models\EventTicketTier;
+use App\Models\Purchase;
+use App\Models\Seat;
+use App\Models\Ticket;
 use App\Models\User;
 use Faker\Generator;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Symfony\Component\Console\Helper\ProgressBar;
 
 class TicketSeeder extends Seeder
 {
@@ -36,45 +42,173 @@ class TicketSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->handleTestClient();
         $events = Event::with('ticketTiers')->get();
-        $users = User::where('user_type', UserTypes::CLIENT->value)->get();
+        $allUsers = User::where('user_type', UserTypes::CLIENT->value)->get();
 
-        $events->each(function ($event) use ($users) {
+        // Get command output for progress bar
+        $output = $this->command->getOutput();
+        $output->writeln('<info>Generating tickets for events...</info>');
+
+        $ticketCount = 0;
+        $purchaseCount = 0;
+        $seatCount = 0;
+        $totalOperations = 0;
+
+        // Calculate total operations for progress bar
+        foreach ($events as $event) {
+            $ticketTiers = $event->ticketTiers;
+            if ($ticketTiers->isEmpty()) {
+                continue;
+            }
+            $totalTickets = $ticketTiers->sum('quantity');
+            $totalOperations += $totalTickets;
+        }
+
+        // Create progress bar
+        $progressBar = new ProgressBar($output, $totalOperations);
+        $progressBar->setFormat(
+            "%current%/%max% [%bar%] %percent:3s%% %elapsed:6s%/%estimated:-6s% %memory:6s% \n%message%"
+        );
+        $progressBar->setMessage('Starting ticket generation...');
+        $progressBar->start();
+
+        $events->each(function ($event) use ($allUsers, $progressBar, &$ticketCount, &$purchaseCount, &$seatCount) {
             // Get ticket tiers for this event
             $ticketTiers = $event->ticketTiers;
-            
+
             if ($ticketTiers->isEmpty()) {
-                return; // Skip events without ticket tiers
+                $progressBar->setMessage("Skipping Event ID {$event->id} (no ticket tiers)");
+                return; 
             }
 
-            $users->each(function ($user) use ($event, $ticketTiers) {
-                // Randomly select a ticket tier for this user
-                $ticketTier = $ticketTiers->random();
+            // Calculate total tickets available for this event
+            $totalTicketsForEvent = $ticketTiers->sum('quantity');
+
+            // Track available quantities for each tier
+            $tierQuantities = [];
+            foreach ($ticketTiers as $tier) {
+                $tierQuantities[$tier->id] = $tier->quantity;
+            }
+
+            // Take exactly the number of users needed based on total tickets available
+            $selectedUsers = $allUsers->shuffle()->take($totalTicketsForEvent);
+
+            // Give each user exactly one ticket
+            foreach ($selectedUsers as $user) {
+                $progressBar->setMessage("Processing: Event #{$event->id} '{$event->name}' - User #{$user->id} '{$user->name}'");
+
+                // Skip if no more tickets available in any tier
+                if (array_sum($tierQuantities) <= 0) {
+                    $progressBar->advance();
+                    continue;
+                }
                 
-                // Create ticket with relationship to both event and ticket tier
-                $ticket = [
-                    'qr_code' => $this->generateQrDetails($event, $user),
-                    'ticket_name' => "{$event->name} - {$user->name} - {$ticketTier->tier_name}",
-                    'event_id' => $event->id,
-                    'owner_id' => $user->id,
-                    'ticket_tier_id' => $ticketTier->id,
-                    'ticket_type' => $ticketTier->ticket_type,
-                    'ticket_desc' => "Ticket for {$ticketTier->tier_name} section",
-                    'is_used' => false,
-                    'used_on' => null,
-                ];
+                // Create a purchase and ticket for this user
+                DB::transaction(function () use (
+                    $user, $event, $ticketTiers, &$tierQuantities, 
+                    $progressBar, &$ticketCount, &$purchaseCount, &$seatCount
+                ) {
+                    // Create purchase record
+                    $purchase = Purchase::create([
+                        'placeholder_for_transaction_handler' => 'TXN_' . uniqid().Str::random(32),
+                        'event_id' => $event->id,
+                        'purchased_by' => $user->id,
+                    ]);
+                    $purchaseCount++;
+
+                    // Find available tiers (those with remaining quantity)
+                    $availableTiers = array_filter($tierQuantities, function($qty) {
+                        return $qty > 0;
+                    });
+
+                    if (empty($availableTiers)) {
+                        return; // No more tickets available, should not happen
+                    }
+
+                    // Randomly select a tier ID from available tiers
+                    $tierIds = array_keys($availableTiers);
+                    $selectedTierId = $tierIds[array_rand($tierIds)];
+                    $selectedTier = $ticketTiers->firstWhere('id', $selectedTierId);
+                    
+                    // Decrement the available quantity for this tier
+                    $tierQuantities[$selectedTierId]--;
+                    
+                    // Create ticket
+                    $ticket = Ticket::create([
+                        'qr_code' => $this->generateQrDetails($event, $user),
+                        'ticket_name' => "{$event->name} - {$user->name} - {$selectedTier->tier_name}",
+                        'event_id' => $event->id,
+                        'owner_id' => $user->id,
+                        'ticket_tier_id' => $selectedTier->id,
+                        'purchase_id' => $purchase->id,
+                        'ticket_type' => $selectedTier->ticket_type,
+                        'ticket_desc' => "Ticket for {$selectedTier->tier_name} section",
+                        'is_used' => false,
+                        'used_on' => null,
+                    ]);
+                    $ticketCount++;
+                    
+                    // Create seat for this ticket
+                    $this->createSeatForTicket($ticket, $event);
+                    $seatCount++;
+                });
                 
-                // Create the ticket through the relationship
-                $ticketTier->tickets()->create($ticket);
-            });
+                $progressBar->advance();
+            }
         });
+
+        $progressBar->finish();
+        $output->writeln('');
+        $output->writeln("<info>Ticket generation complete!</info>");
+        $output->writeln("<info>Generated {$purchaseCount} purchases, {$ticketCount} tickets, and {$seatCount} seats.</info>");
+    }
+
+    /**
+     * Create a seat for a ticket based on ticket type.
+     *
+     * @param Ticket $ticket The ticket to create a seat for
+     * @param Event $event The event the ticket belongs to
+     * @return Seat The created seat
+     */
+    private function createSeatForTicket(Ticket $ticket, Event $event): Seat
+    {
+        // Generate a unique row and seat number for this section
+        $row = chr(65 + rand(0, 25)); // A to Z
+        $number = rand(1, 100);
+
+        // Try to find a unique seat combination (prevent duplicates)
+        $attempts = 0;
+        while ($attempts < 10) {
+            // Check if this seat location already exists for this event
+            $seatExists = Seat::where('event_id', $event->id)
+                ->where('row', $row)
+                ->where('number', $number)
+                ->exists();
+            
+            if (!$seatExists) {
+                break; // Found a unique seat
+            }
+
+            // Try a new row and number
+            $row = chr(65 + rand(0, 25));
+            $number = rand(1, 100);
+            $attempts++;
+        }
+
+        // Create and return the seat
+        return Seat::create([
+            'ticket_id' => $ticket->id,
+            'event_id' => $event->id,
+            'row' => $row,
+            'number' => $number,
+            'section' => $ticket->ticket_type,
+            'is_occupied' => false,
+        ]);
     }
 
     /**
      * Generate QR code details for a ticket.
-     *
-     * This method generates a string containing details about the event and the ticket owner,
-     * which can be used to create a QR code for the ticket.
      *
      * @param Event $event The event for which the ticket is issued.
      * @param User $user The user who owns the ticket.
@@ -83,9 +217,53 @@ class TicketSeeder extends Seeder
      */
     private function generateQrDetails(Event $event, User $user): string
     {
-        return "Event: {$event->name}
-            \nTicket Owner: {$user->name}
-            \nTicket Date: {$event->date}
-            \nCode: {$event->id}-{$user->id}-" . uniqid();
+        return "Event: {$event->name} - Ticket Owner: {$user->name} - Ticket Date: {$event->date} - Code: {$event->id}-{$user->id}-" . uniqid().Str::random(128);
+    }
+
+    /**
+     * Make sure the test client has tickets for all events.
+     *
+     * @return void
+     */
+    private function handleTestClient() {
+        $client = User::where('id', 1)->first();
+
+        if (!$client) {
+            return;
+        }
+
+        $events = Event::all();
+
+        $events->each(function ($event) use ($client) {
+            $ticket = Ticket::where('event_id', $event->id)
+                ->where('owner_id', $client->id)
+                ->first();
+
+            if (!$ticket) {
+                $tier = EventTicketTier::where('event_id', $event->id)->first();
+                if ($tier) {
+                    $purchase = Purchase::create([
+                        'placeholder_for_transaction_handler' => 'TXN_' . uniqid().Str::random(32),
+                        'event_id' => $event->id,
+                        'purchased_by' => $client->id,
+                    ]);
+
+                    $ticket = Ticket::create([
+                        'qr_code' => $this->generateQrDetails($event, $client),
+                        'ticket_name' => "{$event->name} - {$client->name} - {$tier->tier_name}",
+                        'event_id' => $event->id,
+                        'owner_id' => $client->id,
+                        'ticket_tier_id' => $tier->id,
+                        'purchase_id' => $purchase->id,
+                        'ticket_type' => $tier->ticket_type,
+                        'ticket_desc' => "Ticket for {$tier->tier_name} section",
+                        'is_used' => false,
+                        'used_on' => null,
+                    ]);
+
+                    $this->createSeatForTicket($ticket, $event);
+                }
+            }
+        });
     }
 }

@@ -13,17 +13,21 @@ return new class extends Migration
     {
         Schema::create('seats', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('ticket_id')
+                ->unique()
+                ->constrained('tickets')
+                ->onDelete('cascade');
             $table->foreignId('event_id')
-                ->constrained('events');
-            $table->foreignId('user_id')
-                ->constrained('users');
-            $table->foreignId('purchase_id')
-                ->constrained('purchases')
-                ->unique(); // Each purchase should be for a unique seat
+                ->constrained('events')
+                ->onDelete('cascade');
+            $table->string('row')->nullable();
+            $table->string('number')->nullable();
+            $table->string('section')->nullable();
             $table->boolean('is_occupied')
                 ->default(false);
-            $table->unique(['event_id', 'purchase_id']); // A purchase can only reserve one seat per event
             $table->timestamps();
+
+            $table->unique(['event_id', 'row', 'number'], 'unique_seat_location');
         });
     }
 

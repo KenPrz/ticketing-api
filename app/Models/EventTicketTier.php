@@ -57,4 +57,21 @@ class EventTicketTier extends Model
     {
         return $this->hasMany(Ticket::class, 'ticket_tier_id');
     }
+
+    /**
+     * Get all seats through tickets.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     */
+    public function seats()
+    {
+        return $this->hasManyThrough(
+            Seat::class,
+            Ticket::class,
+            'ticket_tier_id',
+            'ticket_id',
+            'id',
+            'id',
+        );
+    }
 }

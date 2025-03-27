@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TicketType;
 use Illuminate\Database\Eloquent\Model;
 
 class Seat extends Model
@@ -12,9 +13,10 @@ class Seat extends Model
      * @var array
      */
     protected $fillable = [
-        'event_id',
-        'user_id',
-        'purchase_id',
+        'ticket_id',
+        'row',
+        'number',
+        'section',
     ];
 
     /**
@@ -23,47 +25,53 @@ class Seat extends Model
      * @var array
      */
     protected $casts = [
-        'event_id' => 'integer',
-        'user_id' => 'integer',
-        'purchase_id' => 'integer',
+        'ticket_id' => 'integer',
+        'section' => TicketType::class,
     ];
 
     /**
-     * Get the event that the seat belongs to.
+     * Get the ticket this seat belongs to.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function event()
+    public function ticket()
     {
-        return $this->belongsTo(
-            Event::class,
-            'event_id'
-        );
+        return $this->belongsTo(Ticket::class, 'ticket_id');
     }
 
     /**
-     * Get the user that occupies the seat.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * Get the event through the ticket.
+     * This uses a dynamic property to access the relationship through ticket.
      */
-    public function user()
+    public function getEventAttribute()
     {
-        return $this->belongsTo(
-            User::class,
-            'user_id'
-        );
+        return $this->ticket ? $this->ticket->event : null;
     }
 
     /**
-     * Get the purchase that the seat belongs to.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * Get the owner through the ticket.
+     * This uses a dynamic property to access the relationship through ticket.
      */
-    public function purchase()
+    public function getOwnerAttribute()
     {
-        return $this->belongsTo(
-            Purchase::class,
-            'purchase_id'
-        );
+        return $this->ticket ? $this->ticket->owner : null;
+    }
+
+    /**
+     * Get the purchase through the ticket.
+     * This uses a dynamic property to access the relationship through ticket.
+     */
+    public function getPurchaseAttribute()
+    {
+        return $this->ticket ? $this->ticket->purchase : null;
+    }
+
+    /**
+     * Get the ticket tier through the ticket.
+     * This uses a dynamic property to access the relationship through ticket.
+     */
+    public function getTicketTierAttribute()
+    {
+        return $this->ticket ? $this->ticket->ticketTier : null;
     }
 }
