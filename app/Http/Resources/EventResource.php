@@ -20,10 +20,10 @@ class EventResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'images' => [
-                'banner' => $this->banner->image_url,
-                'thumbnail' => $this->thumbnail->image_url,
-                'venue' => $this->venueImage->image_url,
-                'gallery' => $this->gallery->pluck('image_url')->toArray(),
+                'banner' => $this->banner?->image_url,
+                'thumbnail' => $this->thumbnail?->image_url,
+                'venue' => $this->venueImage?->image_url,
+                'gallery' => $this->gallery?->pluck('image_url')->toArray(),
                 'merchandise' => $this->fetchMerch(),
             ],
             'date' => DateFormatterHelper::dayShort($this->date),
@@ -37,6 +37,7 @@ class EventResource extends JsonResource
             'priceRange' => $this->fetchPriceRange(),
             'ticket_tiers' => $this->ticketTiers->map(fn($tier) => [
                 'id' => $tier->id,
+                'description' => $tier->ticket_desc,
                 'tier_name' => $tier->tier_name,
                 'price' => $tier->price,
             ]),
