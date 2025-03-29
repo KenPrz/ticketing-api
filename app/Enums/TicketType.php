@@ -79,4 +79,46 @@ enum TicketType: string
             self::PREMIUM_SEATED_PACKAGE,
         ];
     }
+
+    /**
+     * Map the seating capacity for each ticket type.
+     * 
+     * @return array<string, int>
+     */
+    public static function seatingCapacity(): array
+    {
+        return [
+            self::GENERAL_ADMISSION->value => 100,
+            self::UPPER_BOX_REGULAR->value => 90,
+            self::UPPER_BOX_PREMIUM->value => 80,
+            self::FLOOR_STANDING->value => 75,
+            self::LOWER_BOX_B_REGULAR->value => 75,
+            self::LOWER_BOX_B_PREMIUM->value => 75,
+            self::LOWER_BOX_A_REGULAR->value => 75,
+            self::LOWER_BOX_A_PREMIUM->value => 75,
+            self::VIP_EARLY_ENTRY_PACKAGE->value => 50,
+            self::PREMIUM_SEATED_PACKAGE->value => 50,
+        ];
+    }
+
+    /**
+     * Get the ticket prefix for the ticket type.
+     * 
+     * @return array<string, string>
+     */
+    public static function ticketPrefix(): array
+    {
+        return [
+            self::GENERAL_ADMISSION->value => 'GA',
+            self::UPPER_BOX_REGULAR->value => 'UBR',
+            self::UPPER_BOX_PREMIUM->value => 'UBP',
+            self::FLOOR_STANDING->value => 'FS',
+            self::LOWER_BOX_B_REGULAR->value => 'LBBR',
+            self::LOWER_BOX_B_PREMIUM->value => 'LBBP',
+            self::LOWER_BOX_A_REGULAR->value => 'LBAR',
+            self::LOWER_BOX_A_PREMIUM->value => 'LBAP',
+            self::VIP_EARLY_ENTRY_PACKAGE->value => 'VIP',
+            self::PREMIUM_SEATED_PACKAGE->value => 'PREM',
+        ];
+    }
 }

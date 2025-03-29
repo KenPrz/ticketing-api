@@ -51,6 +51,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             EventSeeder::class,
             EventTicketTierSeeder::class,
+            SeatSeeder::class,
             TicketSeeder::class,
             EventBookmarkSeeder::class,
         ]);

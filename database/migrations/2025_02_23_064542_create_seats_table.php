@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('seats', function (Blueprint $table) {
             $table->id();
             $table->foreignId('ticket_id')
-                ->unique()
+                ->nullable()
                 ->constrained('tickets')
                 ->onDelete('cascade');
             $table->foreignId('event_id')
@@ -27,6 +27,10 @@ return new class extends Migration
                 ->default(false);
             $table->timestamps();
 
+            // Add index for faster queries
+            $table->index('ticket_id');
+
+            // Modify unique constraint to handle nullable values
             $table->unique(['event_id', 'row', 'number'], 'unique_seat_location');
         });
     }
