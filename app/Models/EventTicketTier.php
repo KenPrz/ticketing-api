@@ -74,4 +74,17 @@ class EventTicketTier extends Model
             'id',
         );
     }
+
+    /**
+     * Get Seats by ticket tier.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function seatsByTicketTier()
+    {
+        return $this->hasMany(Seat::class, 'event_id', 'event_id')
+                    ->where('section', $this->tier_name)
+                    ->orderBy('row')
+                    ->orderByRaw('CAST(number AS UNSIGNED) ASC');
+    }
 }

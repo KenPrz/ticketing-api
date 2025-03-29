@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\PurchaseService;
+use App\Http\Resources\PurchaseTicketResource;
+use App\Services\{
+    EventService,
+    PurchaseService,
+};
 use Illuminate\Http\Request;
 
 class PurchaseController extends Controller
@@ -13,13 +17,21 @@ class PurchaseController extends Controller
     protected $purchaseService;
 
     /**
+     * @var EventService $eventService An instance of the EventService used to handle event-related operations.
+     */
+    protected $eventService;
+
+    /**
      * TicketController constructor.
      *
      * @param PurchaseService $purchaseService The service used to handle ticket-related operations.
      */
-    public function __construct(PurchaseService $purchaseService)
-    {
+    public function __construct(
+        PurchaseService $purchaseService,
+        EventService $eventService,
+    ) {
         $this->purchaseService = $purchaseService;
+        $this->eventService = $eventService;
     }
 
     /**
@@ -36,6 +48,37 @@ class PurchaseController extends Controller
             return response()
                 ->json(
                     ['purchases' => $purchases],
+                    200
+                );
+        } catch (\Exception $e) {
+            return response()
+                ->json(
+                    ['message' => $e->getMessage()],
+                    400
+                );
+        }
+    }
+
+    /**
+     * Show the Purchase screen for a specific event.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param string $eventId
+     *
+     * @return mixed|\Illuminate\Http\JsonResponse
+     */
+    public function showPurchaseScreen(
+        Request $request,
+        string $eventId,
+    ) {
+        try {
+            $event = $this->eventService->getEventForPurchase($eventId);
+            $data = PurchaseTicketResource::make($event)
+                ->response()
+                ->getData(true);
+            return response()
+                ->json(
+                    ['event' => $event],
                     200
                 );
         } catch (\Exception $e) {

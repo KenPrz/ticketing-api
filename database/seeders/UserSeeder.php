@@ -30,7 +30,7 @@ class UserSeeder extends Seeder
      */
     public function __construct()
     {
-        $this->faker = \Faker\Factory::create();
+        $this->faker = Faker::create();
     }
 
     /**
