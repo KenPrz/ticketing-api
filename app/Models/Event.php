@@ -185,6 +185,17 @@ class Event extends Model
     }
 
     /**
+     * Get the merchandise image for the event.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\MorphOne
+     */
+    public function seatPlanImage()
+    {
+        return $this->morphOne(EventImage::class, 'imageable')
+            ->where('image_type', EventImageType::SEAT_PLAN);
+    }
+
+    /**
      * Get the users who have bookmarked this event.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
