@@ -14,16 +14,30 @@ class PurchaseTicketResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // If this is a collection, handle it properly
+        if ($this->resource instanceof \Illuminate\Database\Eloquent\Collection) {
+            return $this->resource->map(function ($seat) {
+                return [
+                    'id' => $seat->id,
+                    'ticket_id' => $seat->ticket_id ?? null,
+                    'event_id' => $seat->event_id,
+                    'row' => $seat->row,
+                    'number' => $seat->number,
+                    'section' => $seat->section,
+                    'is_occupied' => $seat->is_occupied,
+                ];
+            })->toArray();
+        }
+        
+        // Otherwise, handle single model as before
         return [
-            'event_id' => $this->id,
-            'seat_plan' => $this->seatPlanImage?->image_url,
-            'ticket_tiers' => $this->ticketTiers->map(fn($tier) => [
-                'id' => $tier->id,
-                'description' => $tier->ticket_desc,
-                'tier_name' => $tier->tier_name,
-                'price' => $tier->price,
-                'seats' => $tier->seatsByTicketTier->toArray(),
-            ]),
+            'id' => $this->id,
+            'ticket_id' => $this->ticket_id ?? null,
+            'event_id' => $this->event_id,
+            'row' => $this->row,
+            'number' => $this->number,
+            'section' => $this->section,
+            'is_occupied' => $this->is_occupied,
         ];
     }
 }

@@ -6,7 +6,9 @@ use App\Http\Resources\PurchaseTicketResource;
 use App\Services\{
     EventService,
     PurchaseService,
+    SeatService,
 };
+use App\Services\TicketTierService;
 use Illuminate\Http\Request;
 
 class PurchaseController extends Controller
@@ -22,16 +24,33 @@ class PurchaseController extends Controller
     protected $eventService;
 
     /**
+     * @var SeatService $seatService An instance of the EventService used to handle event-related operations.
+     */
+    protected $seatService;
+
+    /**
+     * @var TicketTierService $ticketTierService An instance of the TicketTierService used to handle ticket tier-related operations.
+     */
+    protected $ticketTierService;
+
+    /**
      * TicketController constructor.
      *
      * @param PurchaseService $purchaseService The service used to handle ticket-related operations.
+     * @param EventService $eventService The service used to handle event-related operations.
+     * @param SeatService $seatService The service used to handle seat-related operations.
+     * @param TicketTierService $ticketTierService The service used to handle ticket tier-related operations.
      */
     public function __construct(
         PurchaseService $purchaseService,
         EventService $eventService,
+        SeatService $seatService,
+        TicketTierService $ticketTierService
     ) {
         $this->purchaseService = $purchaseService;
         $this->eventService = $eventService;
+        $this->seatService = $seatService;
+        $this->ticketTierService = $ticketTierService;
     }
 
     /**
@@ -63,22 +82,24 @@ class PurchaseController extends Controller
      * Show the Purchase screen for a specific event.
      *
      * @param \Illuminate\Http\Request $request
-     * @param string $eventId
+     * @param int $eventTicketTierId
      *
      * @return mixed|\Illuminate\Http\JsonResponse
      */
     public function showPurchaseScreen(
         Request $request,
-        string $eventId,
+        int $eventTicketTierId
     ) {
         try {
-            $event = $this->eventService->getEventForPurchase($eventId);
-            $data = PurchaseTicketResource::make($event)
+            $seats = $this->ticketTierService->fetchSeatsByTicketTierID($eventTicketTierId);
+
+            $data = PurchaseTicketResource::make($seats)
                 ->response()
                 ->getData(true);
+
             return response()
                 ->json(
-                    ['event' => $event],
+                    $data,
                     200
                 );
         } catch (\Exception $e) {
