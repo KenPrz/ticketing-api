@@ -30,6 +30,11 @@ enum EventImageType: string
     case MERCHANDISE = 'MERCHANDISE';
 
     /**
+     * Represents the event's seat plan image.
+     */
+    case SEAT_PLAN = 'SEAT_PLAN';
+
+    /**
      * Get list of all ticket types.
      *
      * @return array<EventImageType>
@@ -42,6 +47,7 @@ enum EventImageType: string
             self::GALLERY,
             self::VENUE,
             self::MERCHANDISE,
+            self::SEAT_PLAN,
         ];
     }
 }

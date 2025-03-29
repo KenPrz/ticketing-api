@@ -21,6 +21,7 @@ class EventResource extends JsonResource
             'description' => $this->description,
             'images' => [
                 'banner' => $this->banner?->image_url,
+                'seat_plan' => $this->seatPlanImage?->image_url,
                 'thumbnail' => $this->thumbnail?->image_url,
                 'venue' => $this->venueImage?->image_url,
                 'gallery' => $this->gallery?->pluck('image_url')->toArray(),
