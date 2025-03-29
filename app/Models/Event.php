@@ -121,6 +121,20 @@ class Event extends Model
     }
 
     /**
+     * Get all seats for this event through ticket tiers.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function seatsById()
+    {
+        return $this->hasMany(
+            Seat::class,
+            'event_id',
+            'id'
+        );
+    }
+
+    /**
      * Get the images for the event.
      *
      * @return \Illuminate\Database\Eloquent\Relations\MorphMany

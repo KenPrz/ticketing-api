@@ -170,4 +170,14 @@ class EventService
     {
         return $user->eventBookmarks;
     }
+
+    public function getEventForPurchase(string $eventId): Event
+    {
+        return $this->event
+            ->with([
+                'ticketTiers',
+                'seatPlanImage',
+            ])
+            ->findOrFail($eventId);
+    }
 }
