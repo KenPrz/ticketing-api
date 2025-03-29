@@ -48,7 +48,7 @@ Route::prefix('/clients')
                 ->name('purchases.show');
             Route::post('/purchases', [PurchaseController::class, 'store'])
                 ->name('purchases.store');
-            Route::get('/purchases/show-tickets/{event_id}', [PurchaseController::class, 'showPurchaseScreen'])
+            Route::get('/purchases/show-tickets/{event_ticket_tier_id}', [PurchaseController::class, 'showPurchaseScreen'])
                 ->name('purchase.ticket');
         });
 });
