@@ -36,7 +36,7 @@ class MapController extends Controller
         $request->validate([
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
-            'radius' => 'sometimes|numeric'
+            'radius' => 'sometimes|numeric',
         ]);
 
         // Get nearby events
@@ -50,12 +50,11 @@ class MapController extends Controller
         $mapEvents = $events->map(function ($event) {
             return [
                 'id' => $event->id,
-                'title' => $event->title,
+                'title' => $event->name,
                 'date' => $event->date,
                 'latitude' => $event->latitude,
                 'longitude' => $event->longitude,
-                'distance' => $event->distance,
-                'image' => $event->image_url ?? null,
+                'image' => $event->banner->image_url ?? null,
             ];
         });
 
