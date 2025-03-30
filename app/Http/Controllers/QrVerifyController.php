@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\DateFormatterHelper;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +30,33 @@ class QrVerifyController extends Controller
         $isValid = $this->verifyQrCode($qrCode);
 
         if ($isValid) {
-            return response()->json(['message' => 'QR code is valid.'], 200);
+            $data = Ticket::with(['seat','event','event.banner'])
+                ->where('qr_code', $qrCode)
+                ->first()
+                ->toArray();
+
+            $barCode = explode('--', $data['qr_code'], 2);
+
+            return response()->json([
+                'message' => 'QR code is valid.',
+                'ticket_data' => [
+                    'account_code' => $data['owner_id'],
+                    'ticket_code' => $barCode[0],
+                    'date' => DateFormatterHelper::dayFull($data['event']['date']),
+                    'time' => $data['event']['time'],
+                    'event' => [
+                        'banner' => $data['event']['banner']['image_url'],
+                        'name' => $data['event']['name'],
+                        'date' => DateFormatterHelper::dayFull($data['event']['date']),
+                        'venue' => $data['event']['venue'],
+                    ],
+                    'seat' => [
+                        'section' => $data['seat']['section'],
+                        'row_and_seat' => $data['seat']['row'].'-'.$data['seat']['number'],
+                    ],
+                ],
+                
+            ], 200);
         } else {
             return response()->json(['message' => 'Invalid QR code.'], 404);
         }
