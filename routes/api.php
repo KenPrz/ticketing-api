@@ -9,7 +9,7 @@ Route::get('/test', function () {
 });
 
 //Qr Verify
-Route::get('/qr-verify', [QrVerifyController::class, 'verify'])
+Route::get('/qr-verify', [QrVerifyController::class, 'verifyQr'])
     ->name('qr.verify');
 
 // Barcode Verify
