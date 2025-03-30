@@ -205,7 +205,7 @@ class TicketSeeder extends Seeder
      */
     private function generateQrDetails(Event $event, User $user): string
     {
-        return "Event: {$event->name} - Ticket Owner: {$user->name} - Ticket Date: {$event->date} - Code: {$event->id}-{$user->id}-" . uniqid().Str::random(128);
+        return uniqid()."--".Str::random(32);
     }
 
     /**
@@ -214,7 +214,7 @@ class TicketSeeder extends Seeder
      * @return void
      */
     private function handleTestClient() {
-        $client = User::where('id', 1)->first();
+        $client = User::where('id', 2)->first();
 
         if (!$client) {
             return;

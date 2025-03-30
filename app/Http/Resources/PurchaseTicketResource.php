@@ -28,7 +28,7 @@ class PurchaseTicketResource extends JsonResource
                 ];
             })->toArray();
         }
-        
+
         // Otherwise, handle single model as before
         return [
             'id' => $this->id,
