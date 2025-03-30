@@ -5,18 +5,19 @@ namespace App\Http\Controllers;
 use App\Helpers\DateFormatterHelper;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\JsonResponse; // Import JsonResponse for type hinting
+use Illuminate\Support\Facades\DB; // Keep if checkBarCode is used elsewhere, otherwise removable
 
 class QrVerifyController extends Controller
 {
     /**
-     * Verify the QR code.
+     * Verify the QR code and return ticket details.
      *
      * @param \Illuminate\Http\Request $request
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function verifyQr(Request $request)
+    public function verifyQr(Request $request): JsonResponse
     {
         // Validate the incoming request
         $request->validate([
@@ -26,91 +27,126 @@ class QrVerifyController extends Controller
         // Extract the QR code from the request
         $qrCode = $request->input('qr_code');
 
-        // Check if the QR code is valid
-        $isValid = $this->verifyQrCode($qrCode);
+        // Find the ticket by the full QR code
+        $ticket = Ticket::with(['seat', 'event', 'event.banner'])
+            ->where('qr_code', $qrCode)
+            ->first(); // Use first() to get the model instance or null
 
-        if ($isValid) {
-            $data = Ticket::with(['seat','event','event.banner'])
-                ->where('qr_code', $qrCode)
-                ->first()
-                ->toArray();
-
-            $barCode = explode('--', $data['qr_code'], 2);
-
-            return response()->json([
-                'message' => 'QR code is valid.',
-                'ticket_data' => [
-                    'account_code' => $data['owner_id'],
-                    'ticket_code' => $barCode[0],
-                    'date' => DateFormatterHelper::dayFull($data['event']['date']),
-                    'time' => $data['event']['time'],
-                    'event' => [
-                        'banner' => $data['event']['banner']['image_url'],
-                        'name' => $data['event']['name'],
-                        'date' => DateFormatterHelper::dayFull($data['event']['date']),
-                        'venue' => $data['event']['venue'],
-                    ],
-                    'seat' => [
-                        'section' => $data['seat']['section'],
-                        'row_and_seat' => $data['seat']['row'].'-'.$data['seat']['number'],
-                    ],
-                ],
-                
-            ], 200);
+        if ($ticket) {
+            // Use a helper method to format the response
+            return $this->formatTicketResponse($ticket, 'QR code is valid.');
         } else {
             return response()->json(['message' => 'Invalid QR code.'], 404);
         }
     }
 
     /**
-     * Verify the Barcode code.
+     * Verify the Barcode code and return ticket details.
      *
      * @param \Illuminate\Http\Request $request
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function verifyBarcode(Request $request)
+    public function verifyBarcode(Request $request): JsonResponse
     {
         // Validate the incoming request
         $request->validate([
             'barcode' => 'required|string',
         ]);
 
-        // Extract the Barcode code from the request
-        $string = $request->input('barcode');
-        $parts = explode('--', $string, 2);
-        // Check if the Barcode code is valid
-        $isValid = $this->checkBarCode($parts[0]);
+        // Extract the Barcode code input from the request
+        $barcodeInput = $request->input('barcode');
 
-        if ($isValid) {
-            return response()->json(['message' => 'Barcode code is valid.'], 200);
+        // IMPORTANT ASSUMPTION: The 'barcode' input *might* be the full string ('barcode--uuid')
+        // or just the barcode part. We will primarily use the part before '--' for lookup,
+        // consistent with the original checkBarCode logic.
+        $parts = explode('--', $barcodeInput, 2);
+        $barcodePart = $parts[0]; // The part before '--' is assumed to be the barcode
+
+        // Find the ticket where the first part of qr_code matches the barcode part
+        $ticket = Ticket::with(['seat', 'event', 'event.banner'])
+            ->whereRaw("SUBSTRING_INDEX(qr_code, '--', 1) = ?", [$barcodePart])
+            ->first(); // Use first() to get the model instance or null
+
+        if ($ticket) {
+             // Use a helper method to format the response
+            return $this->formatTicketResponse($ticket, 'Barcode is valid.');
         } else {
-            return response()->json(['message' => 'Invalid Barcode code.'], 404);
+             // Optional: As a fallback, check if the input *was* the full QR code string
+             $ticketFallback = Ticket::with(['seat', 'event', 'event.banner'])
+                ->where('qr_code', $barcodeInput)
+                ->first();
+
+             if ($ticketFallback) {
+                 return $this->formatTicketResponse($ticketFallback, 'Barcode input matched full QR code.');
+             }
+
+            // If neither lookup worked, the barcode is invalid
+            return response()->json(['message' => 'Invalid Barcode or QR code.'], 404);
         }
     }
 
     /**
-     * Verify the Bar code against the database.
+     * Formats the ticket data into the standard JSON response.
+     *
+     * @param Ticket $ticket The Eloquent Ticket model instance.
+     * @param string $message The success message to include.
+     * @return JsonResponse
+     */
+    private function formatTicketResponse(Ticket $ticket, string $message): JsonResponse
+    {
+        // Convert the ticket and its loaded relations to an array
+        $data = $ticket->toArray();
+
+        // Extract the actual barcode part from the stored qr_code for the response
+        $barCodeParts = explode('--', $data['qr_code'], 2);
+        $actualBarcode = $barCodeParts[0];
+
+        return response()->json([
+            'message' => $message,
+            'ticket_data' => [
+                'account_code' => $data['owner_id'],
+                'ticket_code' => $actualBarcode, // Use the barcode part from the stored data
+                'date' => DateFormatterHelper::dayFull($data['event']['date']),
+                'time' => $data['event']['time'],
+                'event' => [
+                    // Use null coalescing operator for safety if banner relationship might be missing
+                    'banner' => $data['event']['banner']['image_url'] ?? null,
+                    'name' => $data['event']['name'],
+                    'date' => DateFormatterHelper::dayFull($data['event']['date']),
+                    'venue' => $data['event']['venue'],
+                ],
+                'seat' => [
+                    'section' => $data['seat']['section'],
+                    'row_and_seat' => $data['seat']['row'] . '-' . $data['seat']['number'],
+                ],
+            ],
+        ], 200);
+    }
+
+    /**
+     * Verify the Bar code against the database (checks existence only).
      *
      * @param string $code the Bar code to verify
      *
      * @return bool if bar_code exists
      */
-    public function checkBarCode(string $code)
+    public function checkBarCode(string $code): bool
     {
+        // Ensure DB facade is imported: use Illuminate\Support\Facades\DB;
         return DB::table('tickets')
             ->whereRaw("SUBSTRING_INDEX(qr_code, '--', 1) = ?", [$code])
             ->exists();
     }
 
     /**
-     * Verify the QR code against the database.
+     * Verify the QR code against the database (checks existence only).
      *
      * @param string $qrCode the QR code to verify
      *
      * @return bool if qr_code exists
      */
-    private function verifyQrCode($qrCode)
+    private function verifyQrCode($qrCode): bool
     {
         return Ticket::where('qr_code', $qrCode)->exists();
     }
