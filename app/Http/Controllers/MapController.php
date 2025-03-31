@@ -55,6 +55,7 @@ class MapController extends Controller
                 'latitude' => $event->latitude,
                 'longitude' => $event->longitude,
                 'image' => $event->banner->image_url ?? null,
+                'distance' => $event->distance,
             ];
         });
 

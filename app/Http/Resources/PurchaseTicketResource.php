@@ -17,9 +17,13 @@ class PurchaseTicketResource extends JsonResource
         // If this is a collection, handle it properly
         if ($this->resource instanceof \Illuminate\Database\Eloquent\Collection) {
             return $this->resource->map(function ($seat) {
+                // Get the ticket tier price even if ticket is null
+                $ticketTier = $seat->ticket?->ticketTier ?? $seat->getTicketTierEvenIfNoTicket();
+                
                 return [
                     'id' => $seat->id,
                     'ticket_id' => $seat->ticket_id ?? null,
+                    'price' => $ticketTier?->price ?? null,
                     'event_id' => $seat->event_id,
                     'row' => $seat->row,
                     'number' => $seat->number,
@@ -29,10 +33,13 @@ class PurchaseTicketResource extends JsonResource
             })->toArray();
         }
 
-        // Otherwise, handle single model as before
+        // For single model, use the same approach
+        $ticketTier = $this->ticket?->ticketTier ?? $this->getTicketTierEvenIfNoTicket();
+        
         return [
             'id' => $this->id,
             'ticket_id' => $this->ticket_id ?? null,
+            'price' => $ticketTier?->price ?? null,
             'event_id' => $this->event_id,
             'row' => $this->row,
             'number' => $this->number,

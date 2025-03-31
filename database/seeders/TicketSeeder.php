@@ -91,8 +91,8 @@ class TicketSeeder extends Seeder
                     $tierQuantities[$tier->id] = $tier->quantity;
                 }
 
-                $randomReduction = rand(0, floor($totalTicketsForEvent * 0.25));
-                $selectedUsers = $allUsers->shuffle()->take($totalTicketsForEvent - $randomReduction);            
+                $randomReduction = rand(floor($totalTicketsForEvent * 0.25), floor($totalTicketsForEvent * 0.75));
+                $selectedUsers = $allUsers->shuffle()->take($totalTicketsForEvent - $randomReduction);
 
                 // Give each user exactly one ticket
                 foreach ($selectedUsers as $user) {

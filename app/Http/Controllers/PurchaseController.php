@@ -86,13 +86,10 @@ class PurchaseController extends Controller
      *
      * @return mixed|\Illuminate\Http\JsonResponse
      */
-    public function showPurchaseScreen(
-        Request $request,
-        int $eventTicketTierId
-    ) {
+    public function showPurchaseScreen(int $eventTicketTierId) 
+    {
         try {
             $seats = $this->ticketTierService->fetchSeatsByTicketTierID($eventTicketTierId);
-
             $data = PurchaseTicketResource::make($seats)
                 ->response()
                 ->getData(true);

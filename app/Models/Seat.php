@@ -99,4 +99,26 @@ class Seat extends Model
     {
         return !$this->is_occupied && $this->ticket_id === null;
     }
+
+    /**
+     * Get the ticket tier even when ticket_id is null.
+     *
+     * @return \App\Models\EventTicketTier|null
+     */
+    public function getTicketTierEvenIfNoTicket()
+    {
+        // If ticket exists, use the existing relationship
+        if ($this->ticket) {
+            return $this->ticket->ticketTier;
+        }
+
+        // Otherwise, find ticket tier by event_id and matching section name with tier_name
+        if ($this->event_id && $this->section) {
+            return EventTicketTier::where('event_id', $this->event_id)
+                ->where('tier_name', $this->section)
+                ->first();
+        }
+
+        return null;
+    }
 }
