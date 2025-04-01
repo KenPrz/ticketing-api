@@ -6,6 +6,7 @@ use App\Http\Controllers\Events\EventController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\TransferController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('/clients')
@@ -55,6 +56,11 @@ Route::prefix('/clients')
             // Map routes
             Route::get('/map', [MapController::class, 'index'])
                 ->name('map.index');
+
+            // Transfer Routes
+            Route::post('/transfer-email-valid', [TransferController::class, 'checkTransferEmailValidity'])
+                ->name('transfer.email.valid');
+            Route::post('/transfer', [TransferController::class, 'transferTicket']);
 
         });
 });
