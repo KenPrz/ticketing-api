@@ -39,6 +39,7 @@ class EventTicketsResource extends JsonResource
                 'event' => [
                     'id' => $event->id,
                     'name' => $event->name,
+                    'banner' => $event->banner?->image_url,
                     'date' => $event->date,
                     'time' => $event->time,
                     'venue' => $event->venue,
