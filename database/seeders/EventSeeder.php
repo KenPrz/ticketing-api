@@ -251,7 +251,7 @@ class EventSeeder extends Seeder
         
         // Copy the image to the storage path
         $imagePath = Storage::disk('public')->putFileAs(
-            $storagePath, 
+            $storagePath,
             new File($seatPlan),
             $filename
         );

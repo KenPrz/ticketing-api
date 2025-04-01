@@ -88,14 +88,14 @@ enum TicketType: string
     public static function seatingCapacity(): array
     {
         return [
-            self::GENERAL_ADMISSION->value => 100,
-            self::UPPER_BOX_REGULAR->value => 90,
-            self::UPPER_BOX_PREMIUM->value => 80,
-            self::FLOOR_STANDING->value => 75,
-            self::LOWER_BOX_B_REGULAR->value => 75,
-            self::LOWER_BOX_B_PREMIUM->value => 75,
-            self::LOWER_BOX_A_REGULAR->value => 75,
-            self::LOWER_BOX_A_PREMIUM->value => 75,
+            self::GENERAL_ADMISSION->value => 150,
+            self::UPPER_BOX_REGULAR->value => 100,
+            self::UPPER_BOX_PREMIUM->value => 90,
+            self::FLOOR_STANDING->value => 80,
+            self::LOWER_BOX_B_REGULAR->value => 70,
+            self::LOWER_BOX_B_PREMIUM->value => 70,
+            self::LOWER_BOX_A_REGULAR->value => 70,
+            self::LOWER_BOX_A_PREMIUM->value => 70,
             self::VIP_EARLY_ENTRY_PACKAGE->value => 50,
             self::PREMIUM_SEATED_PACKAGE->value => 50,
         ];

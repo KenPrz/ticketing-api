@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StorePurchaseRequest;
 use App\Http\Resources\PurchaseTicketResource;
 use App\Services\{
     EventService,
@@ -86,13 +87,10 @@ class PurchaseController extends Controller
      *
      * @return mixed|\Illuminate\Http\JsonResponse
      */
-    public function showPurchaseScreen(
-        Request $request,
-        int $eventTicketTierId
-    ) {
+    public function showPurchaseScreen(int $eventTicketTierId) 
+    {
         try {
             $seats = $this->ticketTierService->fetchSeatsByTicketTierID($eventTicketTierId);
-
             $data = PurchaseTicketResource::make($seats)
                 ->response()
                 ->getData(true);
@@ -141,23 +139,23 @@ class PurchaseController extends Controller
     /**
      * Store a newly created resource in storage.
      * 
-     * @param Request $request The request object
+     * @param StorePurchaseRequest $request The request object
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request)
+    public function store(StorePurchaseRequest $request)
     {
         try {
             $data = $request->validated();
 
-            $purchase = $this->purchaseService->createPurchase(
+            $this->purchaseService->createPurchase(
                 $request->user(),
                 $data
             );
 
             return response()
                 ->json(
-                    ['purchase' => $purchase],
+                    ['message' => 'Purchase created successfully.'],
                     201
                 );
         } catch (\Exception $e) {

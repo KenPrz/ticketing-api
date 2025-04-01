@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\{
     ModelNotFoundException,
 };
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class PurchaseService 
 {
@@ -67,30 +68,67 @@ class PurchaseService
         return $purchase;
     }
 
+    /**
+     * Create a new purchase.
+     *
+     * @param \App\Models\User $user
+     * @param array $data
+     *
+     * @return Purchase
+     */
     public function createPurchase(User $user, array $data): Purchase
     {
-        return DB::transaction(function () use ($user, $data) {
-            $purchase = $this->purchase->create([
-                'placeholder_for_transaction_handler' => 'transaction_id',
-                'event_id' => $data['event_id'],
-                'purchased_by' => $user->id,
-            ]);
+        $seatIds = array_values($data['seat_ids']);
+        return DB::transaction(function () use ($user, $seatIds) {
 
-            collect($data['tickets'])->map(function ($ticket) use ($purchase) {
-                return $purchase->tickets()->create([
-                    'qr_code' => $ticket['qr_code'],
-                    'ticket_name' => $ticket['ticket_name'],
-                    'event_id' => $ticket['event_id'],
-                    'owner_id' => $ticket['owner_id'],
-                    'ticket_tier_id' => $ticket['ticket_tier_id'],
-                    'ticket_type' => $ticket['ticket_type'],
-                    'ticket_desc' => $ticket['ticket_desc'],
+            foreach ($seatIds as $seatId) {
+                $seat = Seat::findOrFail($seatId);
+                $seat->is_occupied = true;
+                $seat->save();
+
+                $purchase = $this->purchase->create([
+                    'placeholder_for_transaction_handler' => $this->createMockTransactionId(),
+                    'event_id' => $seat->event_id,
+                    'purchased_by' => $user->id,
+                ]);
+
+                Ticket::create([
+                    'qr_code' => $this->generateQrDetails(),
+                    'ticket_name' => "{$purchase->event->name} - {$user->name} - {$seat->section->value}",
+                    'event_id' => $seat->event_id,
+                    'owner_id' => $user->id,
+                    'ticket_tier_id' => $seat->getTicketTierEvenIfNoTicket()->id,
+                    'ticket_type' => $seat->section,
+                    'ticket_desc' => "Purchased by {$user->name} on {$purchase->created_at}",
                     'is_used' => false,
                     'used_on' => null,
                 ]);
-            });
+            }
 
             return $purchase;
         });
+    }
+
+    /**
+     * Create a new seat for a ticket.
+     *
+     * @param Ticket $ticket
+     * @param int $eventId
+     *
+     * @return Seat
+     */
+    private function createMockTransactionId(): string
+    {
+        return 'TXN_' . uniqid() . Str::random(32);
+    }
+
+    /**
+     * Generate QR code details for a ticket.
+     *
+     * @return string A string containing the event name, ticket owner name, event date, and a unique code.
+     */
+    private function generateQrDetails(): string
+    {
+        return uniqid()."--".Str::random(32);
     }
 }
