@@ -26,7 +26,7 @@ class TicketResource extends JsonResource
             'updated_at' => $this->updated_at,
             
             // Event information
-            'event' => $this->when($this->relationLoaded('event'), function () {
+            'event' => $this->when($this->relationLoaded('event') && $this->event, function () {
                 return [
                     'id' => $this->event->id,
                     'name' => $this->event->name,
@@ -40,7 +40,7 @@ class TicketResource extends JsonResource
             }),
             
             // Ticket tier information
-            'ticket_tier' => $this->when($this->relationLoaded('ticketTier'), function () {
+            'ticket_tier' => $this->when($this->relationLoaded('ticketTier') && $this->ticketTier, function () {
                 return [
                     'id' => $this->ticketTier->id,
                     'tier_name' => $this->ticketTier->tier_name,
@@ -50,7 +50,7 @@ class TicketResource extends JsonResource
             }),
             
             // Owner information
-            'owner' => $this->when($this->relationLoaded('owner'), function () {
+            'owner' => $this->when($this->relationLoaded('owner') && $this->owner, function () {
                 return [
                     'id' => $this->owner->id,
                     'name' => $this->owner->name,
@@ -60,35 +60,31 @@ class TicketResource extends JsonResource
             }),
             
             // Purchase information
-            'purchase' => $this->when($this->relationLoaded('purchase'), function () {
+            'purchase' => $this->when($this->relationLoaded('purchase') && $this->purchase, function () {
+                // Check if purchaser exists before trying to access it
+                $purchaser = $this->purchase->purchaser ?? null;
+                
                 return [
                     'id' => $this->purchase->id,
                     'transaction_id' => $this->purchase->placeholder_for_transaction_handler,
                     'purchased_at' => $this->purchase->created_at,
-                    'purchased_by' => [
-                        'id' => $this->purchase->purchaser->id,
-                        'name' => $this->purchase->purchaser->name,
-                    ],
+                    'purchased_by' => $purchaser ? [
+                        'id' => $purchaser->id,
+                        'name' => $purchaser->name,
+                    ] : null,
                 ];
             }),
             
             // Seat information
-            'seat' => $this->when($this->relationLoaded('seat'), function () {
-                return $this->seat ? [
+            'seat' => $this->when($this->relationLoaded('seat') && $this->seat, function () {
+                return [
                     'id' => $this->seat->id,
                     'row' => $this->seat->row,
                     'number' => $this->seat->number,
                     'section' => $this->seat->section,
                     'is_occupied' => $this->seat->is_occupied,
-                ] : null;
+                ];
             }),
-
-            // // Link to download the ticket
-            // 'links' => [
-            //     'self' => route('tickets.show', $this->id),
-            //     'download' => route('tickets.download', $this->id),
-            //     'check_in' => $this->when(!$this->is_used, route('tickets.check-in', $this->id)),
-            // ],
         ];
     }
 }

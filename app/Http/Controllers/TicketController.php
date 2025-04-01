@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\EventTicketsResource;
 use App\Http\Resources\TicketResource;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -25,7 +26,7 @@ class TicketController extends Controller
     }
 
     /**
-     * Get the Ticket of the authenticated user.
+     * Get the Tickets of the authenticated user, grouped by event.
      * 
      * @param Request $request The request object
      * @return \Illuminate\Http\JsonResponse
@@ -33,21 +34,19 @@ class TicketController extends Controller
     public function index(Request $request)
     {
         try {
+            // Get tickets for the authenticated user
             $tickets = $this->ticketService->getMyTickets($request->user());
-            $data = TicketResource::collection($tickets)
-                ->response()
-                ->getData(true);
+
             return response()
                 ->json(
-                    $data,
+                    new EventTicketsResource($tickets),
                     200
                 );
         } catch (\Exception $e) {
-            return response()
-                ->json(
-                    ['message' => $e->getMessage()],
-                    400
-                );
+            return response()->json(
+                ['message' => $e->getMessage()],
+                400
+            );
         }
     }
 
