@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Enums\TicketType;
 use App\Enums\UserTypes;
 use App\Models\Event;
 use App\Models\EventTicketTier;
