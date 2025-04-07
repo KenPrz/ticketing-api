@@ -1,6 +1,9 @@
 <?php
 // api.php - Main API routes file
-use App\Http\Controllers\QrVerifyController;
+use App\Http\Controllers\{
+    QrVerifyController,
+    TransferController,
+};
 use Illuminate\Support\Facades\Route;
 
 // Test route
@@ -15,6 +18,14 @@ Route::get('/qr-verify', [QrVerifyController::class, 'verifyQr'])
 // Barcode Verify
 Route::get('/barcode-verify', [QrVerifyController::class, 'verifyBarcode'])
     ->name('barcode.verify');
+
+Route::get('/transfers/{transferId}/accept', [TransferController::class, 'acceptTransfer'])
+    ->name('tickets.transfer.accept')
+    ->middleware('signed');
+
+Route::get('/transfers/{transferId}/reject', [TransferController::class, 'rejectTransfer'])
+    ->name('tickets.transfer.reject')
+    ->middleware('signed');
 
 require __DIR__.'/api/auth.php';
 require __DIR__.'/api/client.php';

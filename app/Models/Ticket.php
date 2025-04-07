@@ -85,4 +85,14 @@ class Ticket extends Model
     {
         return $this->hasOne(Seat::class, 'ticket_id');
     }
+
+    /**
+     * The transfer history for the ticket.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function transferHistory()
+    {
+        return $this->hasMany(TicketTransferHistory::class, 'ticket_id');
+    }
 }

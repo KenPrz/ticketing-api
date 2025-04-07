@@ -2,72 +2,126 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\UserTypes;
-use App\Models\Ticket;
-use App\Models\User;
+use App\Http\Requests\CheckTransferEmailRequest;
+use App\Http\Requests\TransferTicketRequest;
+use App\Models\TicketTransferHistory;
+use App\Services\TransferService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 
 class TransferController extends Controller
 {
     /**
-     * Check if the email is valid for transfer.
+     * The transfer service instance.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @var \App\Services\TransferService
      */
-    public function checkTransferEmailValidity(Request $request)
+    protected $transferService;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @param  \App\Services\TransferService  $transferService
+     * @return void
+     */
+    public function __construct(TransferService $transferService)
     {
-        $request->validate([
-            'email' => 'required|email|string|max:255|exists:users,email',
-        ]);
-
-        if ($request->user()->email === $request->email) {
-            return response()->json(['valid' => false, 'message' => 'You cannot transfer to yourself'], 422);
-        }
-
-        $recipient = User::where('email', $request->email)->first();
-        if ($recipient->user_type !== UserTypes::CLIENT) {
-            return response()->json(['valid' => false, 'message' => 'invalid user'], 403);
-        }
-
-        // Check if the email is valid
-        if (filter_var($request->email, FILTER_VALIDATE_EMAIL)) {
-            return response()->json(['valid' => true]);
-        }
-
-        return response()->json(['valid' => false], 422);
+        $this->transferService = $transferService;
     }
 
     /**
-     * Transfer a ticket to another user. 
-     * sorry for writing this in the controller deadline is approaching and I need to get this done.
+     * Check if the email is valid for transfer.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\CheckTransferEmailRequest  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function transferTicket(Request $request)
+    public function checkTransferEmailValidity(CheckTransferEmailRequest $request): JsonResponse
     {
-        $request->validate([
-            'ticket_id' => 'required|exists:tickets,id',
-            'email' => 'required|email|string|max:255|exists:users,email',
-        ]);
+        $result = $this->transferService->checkEmailValidity(
+            $request->email,
+            $request->user()
+        );
 
-        // Find the ticket and the user to transfer to
-        $ticket = Ticket::find($request->ticket_id);
-        $userToTransfer = User::where('email', $request->email)->first();
-        if (!$ticket || !$userToTransfer) {
-            return response()->json(['message' => 'Ticket or user not found'], 404);
+        return response()->json(
+            ['valid' => $result['valid'], 'message' => $result['message'] ?? null],
+            $result['status']
+        );
+    }
+
+    /**
+     * Initiate a ticket transfer to another user.
+     *
+     * @param  \App\Http\Requests\TransferTicketRequest  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function transferTicket(TransferTicketRequest $request): JsonResponse
+    {
+        $result = $this->transferService->transferTicket(
+            $request->ticket_id,
+            $request->email,
+            $request->user()
+        );
+
+        return response()->json(
+            ['message' => $result['message']],
+            $result['status']
+        );
+    }
+    
+    /**
+     * Process a ticket transfer acceptance from a signed URL.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $transferId
+     * @return \Illuminate\Http\JsonResponse | \Illuminate\View\View
+     */
+    public function acceptTransfer(Request $request, int $transferId): JsonResponse | \Illuminate\View\View
+    {
+        if (!$request->hasValidSignature()) {
+            return response()->json(
+                ['message' => 'Invalid or expired signature'],
+                403
+            );
+        }
+        
+        $result = $this->transferService->acceptTransfer($transferId);
+        
+        if ($request->expectsJson()) {
+            return response()->json(
+            ['message' => $result['message']],
+            $result['status']
+            );
         }
 
-        // Check if the ticket belongs to the authenticated user
-        if ($ticket->owner_id !== $request->user()->id) {
-            return response()->json(['message' => 'You do not own this ticket'], 403);
+        return view('accepted');
+    }
+    
+    /**
+     * Process a ticket transfer rejection from a signed URL.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $transferId
+     * @return \Illuminate\Http\JsonResponse | \Illuminate\View\View
+     */
+    public function rejectTransfer(Request $request, int $transferId): JsonResponse | \Illuminate\View\View
+    {
+        if (!$request->hasValidSignature()) {
+            return response()->json(
+                ['message' => 'Invalid or expired signature'],
+                403
+            );
+        }
+        
+        $result = $this->transferService->rejectTransfer($transferId);
+        
+        if ($request->expectsJson()) {
+            return response()->json(
+                ['message' => $result['message']],
+                $result['status']
+            );
         }
 
-        // Transfer the ticket
-        $ticket->owner_id = $userToTransfer->id;
-        $ticket->save();
-
-        return response()->json(['message' => 'Ticket transferred successfully']);
+        return view('rejected');
     }
 }

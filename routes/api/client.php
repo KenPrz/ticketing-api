@@ -57,10 +57,11 @@ Route::prefix('/clients')
             Route::get('/map', [MapController::class, 'index'])
                 ->name('map.index');
 
-            // Transfer Routes
-            Route::post('/transfer-email-valid', [TransferController::class, 'checkTransferEmailValidity'])
-                ->name('transfer.email.valid');
-            Route::post('/transfer', [TransferController::class, 'transferTicket']);
+            // Check if email is valid for transfer
+            Route::post('/transfers/check-email', [TransferController::class, 'checkTransferEmailValidity']);
+
+            // Initiate ticket transfer
+            Route::post('/transfers/ticket', [TransferController::class, 'transferTicket']);
 
         });
 });

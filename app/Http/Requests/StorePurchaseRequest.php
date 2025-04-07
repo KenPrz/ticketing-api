@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\PaymentMethod;
 use App\Models\Seat;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -41,19 +42,20 @@ class StorePurchaseRequest extends FormRequest
                 },
             ],
             
-            // Validate payment method
-            'payment_method' => ['required', 'string', Rule::in(['debit_card', 'gcash', 'maya'])],
+            // Validate payment method using the enum
+            'payment_method' => ['required', 'string', Rule::enum(PaymentMethod::class)],
         ];
         
         // Add conditional validation for payment details based on payment method
-        if ($this->input('payment_method') === 'debit_card') {
+        if ($this->input('payment_method') === PaymentMethod::DEBIT_CARD->value) {
             $rules['payment_details'] = 'required|array';
             $rules['payment_details.card_holder'] = 'required|string|max:255';
             $rules['payment_details.card_number'] = 'required|string|min:13|max:19';
             $rules['payment_details.expiry_month'] = 'required|string|size:2|in:01,02,03,04,05,06,07,08,09,10,11,12';
-            $rules['payment_details.expiry_year'] = 'required|string|size:2|min:23'; // Assuming YY format
+            $rules['payment_details.expiry_year'] = 'required|string|size:2|min:23';
             $rules['payment_details.cvv'] = 'required|string|size:3';
-        } elseif ($this->input('payment_method') === 'gcash' || $this->input('payment_method') === 'maya') {
+        } elseif ($this->input('payment_method') === PaymentMethod::GCASH->value || 
+                  $this->input('payment_method') === PaymentMethod::MAYA->value) {
             // For digital wallets, you might want to validate some other fields
             // This is just an example - adjust according to your actual requirements
             $rules['payment_details'] = 'nullable|array';
@@ -80,8 +82,8 @@ class StorePurchaseRequest extends FormRequest
             // The custom validation message for occupied seats is defined in the closure
             
             'payment_method.required' => 'Payment method is required.',
-            'payment_method.in' => 'The selected payment method is not supported.',
-            
+            'payment_method.enum' => 'The selected payment method is not supported.',
+
             'payment_details.required' => 'Payment details are required for card payments.',
             'payment_details.card_holder.required' => 'Cardholder name is required.',
             'payment_details.card_number.required' => 'Card number is required.',
@@ -103,7 +105,7 @@ class StorePurchaseRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         // Ensure payment details is an array when it's submitted as null
-        if ($this->input('payment_method') !== 'debit_card' && !$this->has('payment_details')) {
+        if ($this->input('payment_method') !== PaymentMethod::DEBIT_CARD->value && !$this->has('payment_details')) {
             $this->merge(['payment_details' => []]);
         }
     }
