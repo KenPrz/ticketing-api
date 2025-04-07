@@ -47,6 +47,18 @@ class DatabaseSeeder extends Seeder
             'recent_longitude' => config('constants.default_coordinates.longitude'),
         ]);
 
+        // create the tester user
+        User::create([
+            'name' => env('TESTER_NAME', 'John Doe'),
+            'mobile' => env('TESTER_MOBILE', '+639123456789'),
+            'email' => env('TESTER_EMAIL','johndoe@email.com'),
+            'user_type' => env('TESTER_USER_TYPE', UserTypes::CLIENT->value),
+            'password' => bcrypt(env('TESTER_PASSWORD', 'password')),
+            'recent_latitude' => config('constants.default_coordinates.latitude'),
+            'recent_longitude' => config('constants.default_coordinates.longitude'),
+        ]);
+        
+
         $this->call([
             UserSeeder::class,
             EventSeeder::class,
