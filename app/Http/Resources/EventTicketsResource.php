@@ -16,7 +16,7 @@ class EventTicketsResource extends JsonResource
     {
         // Ensure all tickets have necessary relationships loaded
         if (!$this->resource->first()?->relationLoaded('event')) {
-            $this->resource->load(['event', 'ticketTier', 'owner', 'purchase.purchaser', 'seat']);
+            $this->resource->load(['event', 'ticketTier', 'owner', 'purchase.purchaser', 'seat', 'transferStatus']);
         }
 
         // Group tickets by event ID

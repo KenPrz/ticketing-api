@@ -95,4 +95,15 @@ class Ticket extends Model
     {
         return $this->hasMany(TicketTransferHistory::class, 'ticket_id');
     }
+
+    /**
+     * Get the latest transfer status for the ticket.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function transferStatus()
+    {
+        return $this->hasOne(TicketTransferHistory::class, 'ticket_id')
+            ->latestOfMany();
+    }
 }

@@ -40,7 +40,7 @@ class TicketService
     public function getMyTickets(User $user)
     {
         return $this->ticket->where('owner_id', $user->id)
-            ->with(['event', 'ticketTier', 'purchase', 'seat'])
+            ->with(['event', 'ticketTier', 'purchase', 'seat', 'transferStatus'])
             ->get();
     }
 
@@ -83,7 +83,7 @@ class TicketService
      *
      * @return Ticket The found ticket instance with loaded relationships
      */
-    public function getTicket(string $id, array $relations = ['event', 'ticketTier', 'owner', 'purchase.purchaser', 'seat']): Ticket
+    public function getTicket(string $id, array $relations = ['event', 'ticketTier', 'owner', 'purchase.purchaser', 'seat', 'transferStatus']): Ticket
     {
         return $this->ticket->with($relations)->findOrFail($id);
     }

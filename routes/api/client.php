@@ -58,10 +58,13 @@ Route::prefix('/clients')
                 ->name('map.index');
 
             // Check if email is valid for transfer
-            Route::post('/transfers/check-email', [TransferController::class, 'checkTransferEmailValidity']);
-
+            Route::post('/transfers/check-email', [TransferController::class, 'checkTransferEmailValidity'])
+                ->name('transfers.check-email');
             // Initiate ticket transfer
-            Route::post('/transfers/ticket', [TransferController::class, 'transferTicket']);
-
+            Route::post('/transfers/ticket', [TransferController::class, 'transferTicket'])
+                ->name('transfers.ticket');
+            // Cancel ticket transfer
+            Route::post('/transfers/cancel', [TransferController::class, 'cancelTicketTransfer'])
+                ->name('transfers.cancel');
         });
 });
