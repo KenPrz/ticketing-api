@@ -27,6 +27,9 @@ class TicketResource extends JsonResource
             'transfer_status' => $this->relationLoaded('transferStatus')
                 ? $this->transferStatus?->status
                 : null,
+            'transfer_id' => $this->relationLoaded('transferStatus')
+                ? $this->transferStatus?->id
+                : null,
 
             // Event information
             'event' => $this->when($this->relationLoaded('event') && $this->event, function () {

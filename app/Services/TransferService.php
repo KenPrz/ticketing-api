@@ -58,10 +58,14 @@ class TransferService
      * @param  int  $ticketId
      * @param  string  $email
      * @param  User  $currentUser
+     *
      * @return array
      */
-    public function transferTicket(int $ticketId, string $email, User $currentUser): array
-    {
+    public function transferTicket(
+        int $ticketId,
+        string $email,
+        User $currentUser,
+    ): array {
         // Find the ticket and the user to transfer to
         $ticket = Ticket::find($ticketId);
         $userToTransfer = User::where('email', $email)->first();
@@ -230,7 +234,16 @@ class TransferService
                 'status' => 404
             ];
         }
-        
+
+        // Check if the ticket belongs to the authenticated user
+        if ($transferHistory->ticket->owner_id !== $currentUser->id) {
+            return [
+                'success' => false,
+                'message' => 'You do not own this ticket',
+                'status' => 403
+            ];
+        }
+
         // Check if the current user is the one who initiated the transfer.
         if ($transferHistory->from_user_id !== $currentUser->id) {
             return [

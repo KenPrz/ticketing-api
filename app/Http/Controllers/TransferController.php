@@ -132,8 +132,9 @@ class TransferController extends Controller
      * @param  int  $transferId
      * @return \Illuminate\Http\JsonResponse
      */
-    public function cancelTicketTransfer(Request $request, int $transferId): JsonResponse
+    public function cancelTicketTransfer(Request $request): JsonResponse
     {
+        $transferId = $request->input('transfer_id');
         $user = $request->user();
         $result = $this->transferService->cancelTransfer(
             $transferId,
