@@ -19,6 +19,13 @@ Route::prefix('/clients')
             // Home dashboard
             Route::get('/', [HomeController::class, 'index'])
                 ->name('home');
+            Route::get('/events/upcoming', [HomeController::class, 'listUpcomingEvents'])
+                ->name('home.upcoming');
+            Route::get('/events/nearby', [HomeController::class, 'listNearbyEvents'])
+                ->name('home.nearby');
+            Route::get('/events/for-you', [HomeController::class, 'listForYouEvents'])
+                ->name('home.for-you');
+
             // Client event viewing routes
             Route::get('/events', [EventController::class, 'index'])
                 ->name('events.index');

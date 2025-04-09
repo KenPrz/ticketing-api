@@ -94,11 +94,16 @@ class EventService
 
     /**
      * Fetch the upcoming events in the next one and a half months.
-     * 
+     *
+     * @param bool $isPaginated
+     * @param bool $isHomeLimited 
+     *
      * @return Collection<Event> | LengthAwarePaginator The collection of upcoming events
      */
-    public function upcomingEvents(bool $isPaginated = false): Collection | LengthAwarePaginator
-    {
+    public function upcomingEvents(
+        bool $isPaginated = false,
+        bool $isHomeLimited = true,
+    ): Collection | LengthAwarePaginator {
         $inOneAndHalfMonths = now()->addMonths(1)->addDays(15);
         $query = $this->event
             ->where('date', '>=', now())
@@ -109,7 +114,12 @@ class EventService
                 return $query->paginate(config('constants.pagination_limit'));
             }
 
-        return $query->limit(config('constants.home_limit'))->get();
+            if ($isHomeLimited)
+            {
+                return $query->limit(config('constants.home_limit'))->get();
+            }
+
+            return $query->get();
     }
 
     /**
@@ -117,6 +127,8 @@ class EventService
      * 
      * @param  float  $latitude  The latitude of the user
      * @param  float  $longitude  The longitude of the user
+     * @param bool $isPaginated
+     * @param bool $isHomeLimited 
      * 
      * @return Collection<Event> | LengthAwarePaginator The collection of nearby events
      */
@@ -124,6 +136,7 @@ class EventService
         float $latitude,
         float $longitude,
         bool $isPaginated = false,
+        bool $isHomeLimited = true,
     ): Collection | LengthAwarePaginator {
         $userPoint = "POINT({$longitude} {$latitude})";
 
@@ -142,23 +155,38 @@ class EventService
             return $query->paginate(config('constants.pagination_limit'));
         }
 
-        return $query->limit(config('constants.home_limit'))->get();
+        if ($isHomeLimited)
+        {
+            return $query->limit(config('constants.home_limit'))->get();
+        }
+
+        return $query->get();
     }
 
     /**
      * Fetch the events that are recommended for the user.
      * 
+     * @param bool $isPaginated
+     * @param bool $isHomeLimited 
+     * 
      * @return Collection<Event> | LengthAwarePaginator  The collection of recommended events
      */
-    public function forYouEvents($isPaginated = false): Collection | LengthAwarePaginator
-    {
+    public function forYouEvents(
+        bool $isPaginated = false,
+        bool $isHomeLimited = true,
+    ): Collection | LengthAwarePaginator {
         $query = $this->event->inRandomOrder();
 
         if($isPaginated) {
             return $query->paginate(config('constants.pagination_limit'));
         }
 
-        return $query->limit(config('constants.home_limit'))->get();
+        if ($isHomeLimited)
+        {
+            return $query->limit(config('constants.home_limit'))->get();
+        }
+
+        return $query->get();
     }
 
     /**

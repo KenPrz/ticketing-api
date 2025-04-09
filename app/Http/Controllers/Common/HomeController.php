@@ -67,6 +67,88 @@ class HomeController extends Controller
     }
 
     /**
+     * Display the list of upcoming events.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function listUpcomingEvents()
+    {
+        $upcomingEvents = $this->eventService->upcomingEvents(
+            false,
+            false,
+        );
+
+        return response()
+            ->json(
+                [
+                    EventResource::collection($upcomingEvents)
+                        ->response()
+                        ->getData(true),
+                ],
+                200
+            );
+    }
+
+    /**
+     * Display the list of nearby events.
+     *
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function listNearbyEvents(Request $request)
+    {
+        $requestData = $request->user()
+            ->only(
+                [
+                'recent_latitude',
+                'recent_longitude'
+            ]
+        );
+    
+        
+        $nearbyEvents = $this->eventService->nearbyEvents(
+            $requestData['recent_latitude'],
+            $requestData['recent_longitude'],
+            false,
+            false,
+        );
+
+        return response()
+            ->json(
+                [
+                    EventResource::collection($nearbyEvents)
+                        ->response()
+                        ->getData(true),
+                ],
+                200
+            );
+    }
+
+    /**
+     * Display the list of events recommended for the user.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function listForYouEvents()
+    {
+        $forYouEvents = $this->eventService->forYouEvents(
+            false,
+            false,
+        );
+
+        return response()
+            ->json(
+                [
+                    EventResource::collection($forYouEvents)
+                        ->response()
+                        ->getData(true),
+                ],
+                200
+            );
+    }
+
+    /**
      * Update the user's location.
      *
      * @param \Illuminate\Http\Request $request
