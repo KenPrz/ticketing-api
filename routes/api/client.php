@@ -3,6 +3,7 @@
 use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\Common\HomeController;
 use App\Http\Controllers\Events\EventController;
+use App\Http\Controllers\FriendController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\TicketController;
@@ -66,5 +67,23 @@ Route::prefix('/clients')
             // Cancel ticket transfer
             Route::post('/transfers/cancel', [TransferController::class, 'cancelTicketTransfer'])
                 ->name('transfers.cancel');
+
+            // Friend routes
+            Route::get('/friends', [FriendController::class, 'index'])
+                ->name('friends.index');
+            Route::get('/friends/sent-requests', [FriendController::class, 'getSentRequests'])
+                ->name('friends.sent-requests');
+            Route::get('/friends/received-requests', [FriendController::class, 'getReceivedRequests'])
+                ->name('friends.received-requests');
+            Route::post('/friends/send-request', [FriendController::class, 'sendRequest'])
+                ->name('friends.send-request');
+            Route::post('/friends/accept-request', [FriendController::class, 'acceptRequest'])
+                ->name('friends.accept-request');
+            Route::post('/friends/reject-request', [FriendController::class, 'rejectRequest'])
+                ->name('friends.reject-request');
+            Route::post('/friends/block-user', [FriendController::class, 'blockUser'])
+                ->name('friends.block-user');
+            Route::post('/friends/unblock-user', [FriendController::class, 'unblockUser'])
+                ->name('friends.unblock-user');
         });
 });
