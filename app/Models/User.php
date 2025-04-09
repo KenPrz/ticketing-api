@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\{
+    FriendStatus,
+    UserTypes,
+};
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use App\Enums\UserTypes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -27,6 +30,7 @@ class User extends Authenticatable
         'mobile',
         'recent_longitude',
         'recent_latitude',
+        'avatar',
     ];
 
     /**
@@ -41,19 +45,6 @@ class User extends Authenticatable
 
     /**
      * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-        'user_type' => UserTypes::class,
-        'recent_longitude' => 'float',
-        'recent_latitude' => 'float',
-    ];
-
-    /**
-     * Get the attributes that should be cast.
      *
      * @return array<string, string>
      */
@@ -185,7 +176,7 @@ class User extends Authenticatable
     /**
      * Check if the user has a verified OTP.
      *
-     * @return bool
+     * @return \Illuminate\Database\Eloquent\Casts\Attribute
      */
     public function hasVerifiedOtp(): Attribute
     {
@@ -202,5 +193,41 @@ class User extends Authenticatable
     public function events()
     {
         return $this->hasMany(Event::class, 'organizer_id');
+    }
+
+    /**
+     * Get all accepted friends of the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function friends()
+    {
+        return $this->hasMany(UserFriend::class, 'user_id')
+            ->where('status', FriendStatus::ACCEPTED)
+            ->with('friend');
+    }
+
+    /**
+     * Get all pending friend requests sent by the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function sentFriendRequests()
+    {
+        return $this->hasMany(UserFriend::class, 'user_id')
+            ->where('status', FriendStatus::PENDING)
+            ->with('friend');
+    }
+
+    /**
+     * Get all pending friend requests received by the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function receivedFriendRequests()
+    {
+        return $this->hasMany(UserFriend::class, 'friend_id')
+            ->where('status', FriendStatus::PENDING)
+            ->with('user');
     }
 }
