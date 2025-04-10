@@ -7,7 +7,7 @@ use App\Notifications\FriendRequestAcceptedNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 
-class FriendRequestAcceptedListener implements ShouldQueue
+class FriendRequestAcceptedListener
 {
     use InteractsWithQueue;
 

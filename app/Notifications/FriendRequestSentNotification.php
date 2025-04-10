@@ -2,24 +2,28 @@
 
 namespace App\Notifications;
 
+use App\Enums\NotificationType;
 use App\Models\User;
+use App\Models\UserFriend;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class FriendRequestSentNotification extends Notification implements ShouldQueue
+class FriendRequestSentNotification extends Notification
 {
     use Queueable;
 
     protected User $sender;
+    protected UserFriend $userFriend;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(User $sender)
+    public function __construct(User $sender, UserFriend $userFriend)
     {
         $this->sender = $sender;
+        $this->userFriend = $userFriend;
     }
 
     /**
@@ -51,11 +55,12 @@ class FriendRequestSentNotification extends Notification implements ShouldQueue
     public function toArray(object $notifiable): array
     {
         return [
+            'interaction_id' => $this->userFriend->id,
             'sender_id' => $this->sender->id,
             'sender_name' => $this->sender->name,
             'avatar' => $this->sender?->avatar,
             'message' => $this->sender->name . ' sent you a friend request',
-            'type' => 'friend_request_sent',
+            'type' => NotificationType::FRIEND_REQUEST_SENT->value,
         ];
     }
 }

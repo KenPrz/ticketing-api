@@ -11,4 +11,5 @@ return [
         'latitude' => (float) env('DEFAULT_LATITUDE', 14.5995),
         'longitude' => (float) env('DEFAULT_LONGITUDE', 120.9842),
     ],
+    'notification_limit' => (int) env('NOTIFICATION_LIMIT', 100),
 ];

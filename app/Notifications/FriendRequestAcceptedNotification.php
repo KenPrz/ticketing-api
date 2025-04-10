@@ -2,13 +2,14 @@
 
 namespace App\Notifications;
 
+use App\Enums\NotificationType;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class FriendRequestAcceptedNotification extends Notification implements ShouldQueue
+class FriendRequestAcceptedNotification extends Notification
 {
     use Queueable;
 
@@ -55,7 +56,7 @@ class FriendRequestAcceptedNotification extends Notification implements ShouldQu
             'recipient_name' => $this->recipient->name,
             'avatar' => $this->recipient?->avatar,
             'message' => $this->recipient->name . ' accepted your friend request',
-            'type' => 'friend_request_accepted',
+            'type' => NotificationType::FRIEND_REQUEST_ACCEPTED->value,
         ];
     }
 }

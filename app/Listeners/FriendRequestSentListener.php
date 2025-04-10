@@ -7,7 +7,7 @@ use App\Notifications\FriendRequestSentNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 
-class FriendRequestSentListener implements ShouldQueue
+class FriendRequestSentListener
 {
     use InteractsWithQueue;
 
@@ -17,6 +17,6 @@ class FriendRequestSentListener implements ShouldQueue
     public function handle(FriendRequestSent $event): void
     {
         // Send notification to the recipient
-        $event->recipient->notify(new FriendRequestSentNotification($event->sender));
+        $event->recipient->notify(new FriendRequestSentNotification($event->sender, $event->userFriend));
     }
 }

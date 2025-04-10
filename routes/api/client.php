@@ -5,6 +5,7 @@ use App\Http\Controllers\Common\HomeController;
 use App\Http\Controllers\Events\EventController;
 use App\Http\Controllers\FriendController;
 use App\Http\Controllers\MapController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TransferController;
@@ -92,5 +93,22 @@ Route::prefix('/clients')
                 ->name('friends.block-user');
             Route::post('/friends/unblock-user', [FriendController::class, 'unblockUser'])
                 ->name('friends.unblock-user');
+            
+            // Notification routes
+            // List all notifications
+            Route::get('/notifications', [NotificationController::class, 'index'])
+                ->name('notifications.index');
+
+            // Get count of unread notifications
+            Route::get('/notifications/count', [NotificationController::class, 'unreadCount'])
+                ->name('notifications.unread.count');
+
+            // Mark a specific notification as read
+            Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])
+                ->name('notifications.mark.read');
+
+            // Mark all notifications as read
+            Route::patch('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])
+                ->name('notifications.mark.all.read');
         });
 });

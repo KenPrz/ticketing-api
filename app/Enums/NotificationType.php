@@ -17,7 +17,14 @@ enum NotificationType:string
      * @var string
      */
     
-    case FRIEND_REQUEST = 'FRIEND_REQUEST';
+    case FRIEND_REQUEST_SENT = 'FRIEND_REQUEST_SENT';
+
+    /**
+     * Notification type for friend request accepted.
+     * 
+     * @var string
+     */
+    case FRIEND_REQUEST_ACCEPTED = 'FRIEND_REQUEST_ACCEPTED';
 
     /**
      * Get list of all notification types.
@@ -28,7 +35,8 @@ enum NotificationType:string
     {
         return [
             self::MESSAGE,
-            self::FRIEND_REQUEST,
+            self::FRIEND_REQUEST_SENT,
+            self::FRIEND_REQUEST_ACCEPTED,
         ];
     }
 }
