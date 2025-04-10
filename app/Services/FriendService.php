@@ -3,21 +3,30 @@
 namespace App\Services;
 
 use App\Enums\FriendStatus;
-use App\Models\UserFriend;
+use App\Events\{
+    FriendRequestAccepted,
+    FriendRequestSent,
+};
+use App\Models\{
+    User,
+    UserFriend,
+};
 
 class FriendService
 {
-
     protected $model;
+    protected $userModel;
 
     /**
      * Constructor to initialize the model.
      *
      * @param \App\Models\UserFriend $model
+     * @param \App\Models\User $userModel
      */
-    public function __construct(UserFriend $model)
+    public function __construct(UserFriend $model, User $userModel)
     {
         $this->model = $model;
+        $this->userModel = $userModel;
     }
 
     /**
@@ -32,11 +41,45 @@ class FriendService
         int $userId,
         int $friendId
     ): UserFriend {
-        return $this->model->create([
+
+        // Check if the friend request already exists
+        $existingRequest = $this->model->where([
+            'user_id' => $userId,
+            'friend_id' => $friendId,
+        ])->first();
+
+        if ($existingRequest) {
+            // If the request already exists, return it
+            return $existingRequest;
+        }
+
+        // Check if the user is already friends with the friend
+        $existingFriendship = $this->model->where([
+            'user_id' => $userId,
+            'friend_id' => $friendId,
+            'status' => FriendStatus::ACCEPTED,
+        ])->first();
+
+        if ($existingFriendship) {
+            // If they are already friends, return the existing friendship
+            return $existingFriendship;
+        }
+
+        // Create a new friend request.
+        $userFriend = $this->model->create([
             'user_id' => $userId,
             'friend_id' => $friendId,
             'status' => FriendStatus::PENDING,
         ]);
+
+        // Get the user and friend models
+        $sender = $this->userModel->findOrFail($userId);
+        $recipient = $this->userModel->findOrFail($friendId);
+
+        // Fire the event
+        event(new FriendRequestSent($userFriend, $sender, $recipient));
+
+        return $userFriend;
     }
 
     /**
@@ -51,11 +94,28 @@ class FriendService
         int $userId,
         int $friendId,
     ): bool {
-        return $this->model->where([
+        $updated = $this->model->where([
             'user_id' => $friendId,
             'friend_id' => $userId,
             'status' => FriendStatus::PENDING,
         ])->update(['status' => FriendStatus::ACCEPTED]);
+
+        if ($updated) {
+            // Get the user and friend models
+            $recipient = $this->userModel->findOrFail($userId);
+            $sender = $this->userModel->findOrFail($friendId);
+
+            // Get the UserFriend record
+            $userFriend = $this->model->where([
+                'user_id' => $friendId,
+                'friend_id' => $userId,
+            ])->first();
+
+            // Fire the event
+            event(new FriendRequestAccepted($userFriend, $sender, $recipient));
+        }
+
+        return (bool) $updated;
     }
 
     /**

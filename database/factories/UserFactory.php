@@ -13,6 +13,24 @@ use Illuminate\Support\Str;
 class UserFactory extends Factory
 {
     /**
+     * The name of the factory's corresponding model.
+     *
+     * @var class-string<\Illuminate\Database\Eloquent\Model>
+     */
+    protected const AVATARS = [
+        '/storage/images/avatars/img_1.png',
+        '/storage/images/avatars/img_2.png',
+        '/storage/images/avatars/img_3.png',
+        '/storage/images/avatars/img_4.png',
+        '/storage/images/avatars/img_5.png',
+        '/storage/images/avatars/img_6.png',
+        '/storage/images/avatars/img_7.png',
+        '/storage/images/avatars/img_8.png',
+        '/storage/images/avatars/img_9.png',
+        '/storage/images/avatars/img_10.png',
+    ];
+
+    /**
      * The current password being used by the factory.
      */
     protected static ?string $password;
@@ -29,6 +47,7 @@ class UserFactory extends Factory
             'email' => $this->faker
                 ->unique()
                 ->safeEmail(),
+            'avatar' => rtrim(env('APP_URL'), '/') . $this->faker->randomElement(self::AVATARS),
             'mobile' => $this->faker
                 ->unique()
                 ->numerify('+639#########'),
