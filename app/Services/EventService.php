@@ -58,7 +58,7 @@ class EventService
         $singleImageTypes = [
             'banner' => EventImageType::BANNER, 
             'thumbnail' => EventImageType::THUMBNAIL, 
-            'venue' => EventImageType::VENUE
+            'venueImage' => EventImageType::VENUE
         ];
 
         foreach ($singleImageTypes as $key => $type) {
@@ -89,7 +89,52 @@ class EventService
             }
         }
 
-        return $event->fresh()->load(['banner', 'thumbnail', 'venue', 'gallery']);
+        return $event->fresh()->load(['banner', 'thumbnail', 'venueImage', 'gallery']);
+    }
+
+    /**
+     * Publish an event by its ID.
+     *
+     * @param  Event $event The ID of the event to publish
+     *
+     * @throws ModelNotFoundException  When event is not found
+     * @throws \Exception  When event is already published
+     *
+     * @return Event  The published event instance
+     */
+    public function publishEvent(Event $event)
+    {
+        if ($event->is_published) {
+            throw new \Exception('Event is already published.');
+        }
+
+        $event->is_published = true;
+        $event->save();
+
+        return $event;
+    }
+
+    /**
+     * Unpublish an event by its ID.
+     *
+     * @param  Event $event The ID of the event to unpublish
+     *
+     * @throws ModelNotFoundException  When event is not found
+     * @throws \Exception  When event is already unpublished
+     *
+     * @return Event  The unpublished event instance
+     */
+    public function unpublishEvent(Event $event)
+    {
+
+        if (!$event->is_published) {
+            throw new \Exception('Event is already unpublished.');
+        }
+
+        $event->is_published = false;
+        $event->save();
+
+        return $event;
     }
 
     /**
@@ -304,5 +349,17 @@ class EventService
                 'seatPlanImage',
             ])
             ->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Fetch a specific even that are organized by the user.
+     * 
+     * @param string $id The user instance
+     * 
+     * @return mixed
+     */
+    public function getOrganizerEvent(string $id) 
+    {
+        return $this->event->findOrFail($id);
     }
 }

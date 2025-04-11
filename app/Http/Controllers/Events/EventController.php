@@ -219,16 +219,15 @@ class EventController extends Controller
     public function addImages(EventAddImagesRequest $request, string $id)
     {
         try {
-            $event = $this->eventService->getEvent($id);
-            
+            $user = $request->user();
+            $event = $this->eventService->getOrganizerEvent($id);
             // Check if user is authorized to update this event
-            if ($event->organizer_id !== $request->auth()->id()) {
+            if ($event->organizer_id !== $user->id) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
 
             // Get validated data
             $images = $request->validated();
-
             $updatedEvent = $this->eventService->addImages($event, $images);
 
             return response()
@@ -248,6 +247,83 @@ class EventController extends Controller
         }
     }
 
+    /**
+     * Publish an event.
+     *
+     * @param Request $request The request object
+     * @param string $eventId The ID of the event to publish
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function publishEvent(Request $request, string $eventId)
+    {
+        try {
+            $event = $this->eventService->getOrganizerEvent($eventId);
+            $user = $request->user();
+
+            // Check if user is authorized to publish this event
+            if ($event->organizer_id !== $user->id) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            $this->eventService->publishEvent($event);
+
+            return response()
+                ->json(
+                    ['message' => 'Event published successfully'],
+                    200
+                );
+        } catch (\Exception $e) {
+            return response()
+                ->json(
+                    ['message' => $e->getMessage()],
+                    400,
+                );
+        }
+    }
+
+    /**
+     * Unpublish an event.
+     *
+     * @param Request $request The request object
+     * @param string $eventId The ID of the event to unpublish
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function unpublishEvent(Request $request, string $eventId)
+    {
+        try {
+            $event = $this->eventService->getOrganizerEvent($eventId);
+            $user = $request->user();
+
+            // Check if user is authorized to unpublish this event
+            if ($event->organizer_id !== $user->id) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            $this->eventService->unpublishEvent($event);
+
+            return response()
+                ->json(
+                    ['message' => 'Event unpublished successfully'],
+                    200
+                );
+        } catch (\Exception $e) {
+            return response()
+                ->json(
+                    ['message' => $e->getMessage()],
+                    400,
+                );
+        }
+    }
+
+    /**
+     * Get events created by the authenticated organizer.
+     *
+     * @param Request $request The request object
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function organizerEvents(Request $request)
     {
         try {

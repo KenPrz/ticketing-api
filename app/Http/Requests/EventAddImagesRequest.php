@@ -25,7 +25,7 @@ class EventAddImagesRequest extends FormRequest
         return [
             'banner' => 'required|file|image|max:5120',
             'thumbnail' => 'required|file|image|max:2048',
-            'venue' => 'required|file|image|max:5120',
+            'venueImage' => 'required|file|image|max:5120',
             'gallery' => 'nullable|array',
             'gallery.*' => 'file|image|max:5120',
         ];
