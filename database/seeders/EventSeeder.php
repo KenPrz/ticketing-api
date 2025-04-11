@@ -67,6 +67,11 @@ class EventSeeder extends Seeder
                 'city' => $event['address'],
                 'longitude' => $event['longitude'],
                 'latitude' => $event['latitude'],
+                'is_published' => true,
+                'is_cancelled' => false,
+                'cancelled_reason' => null,
+                'cancelled_at' => null,
+                'published_at' => now(),
             ]);
 
             $color = strtolower($this->faker->colorName());

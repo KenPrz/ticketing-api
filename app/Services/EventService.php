@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\EventImageType;
 use App\Models\Event;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -30,6 +31,68 @@ class EventService
     }
 
     /**
+     * Create a new event with the given data.
+     *
+     * @param  array  $data  The data to create the event with
+     *
+     * @return Event  The created event instance
+     */
+    public function createEvent(array $data): Event
+    {
+        $event = $this->event->create($data);
+
+        return $event->fresh();
+    }
+
+    /**
+     * Add images to an event.
+     *
+     * @param Event $event The event to add images to
+     * @param array $images The images to add
+     *
+     * @return Event The updated event instance
+     */
+    public function addImages(Event $event, array $images): Event
+    {
+        // Handle single image types (banner, thumbnail, venue)
+        $singleImageTypes = [
+            'banner' => EventImageType::BANNER, 
+            'thumbnail' => EventImageType::THUMBNAIL, 
+            'venue' => EventImageType::VENUE
+        ];
+
+        foreach ($singleImageTypes as $key => $type) {
+            if (isset($images[$key])) {
+                // Delete existing image of this type if it exists
+                $event->images()
+                    ->where('image_type', $type)
+                    ->delete();
+
+                // Add the new image
+                $file = $images[$key];
+                $imagePath = $file->store('events/' . $event->id . '/' . strtolower($key), 'public');
+                $event->images()->create([
+                    'image_url' => $imagePath,
+                    'image_type' => $type,
+                ]);
+            }
+        }
+
+        // Handle gallery images (multiple)
+        if (isset($images['gallery']) && is_array($images['gallery'])) {
+            foreach ($images['gallery'] as $galleryImage) {
+                $imagePath = $galleryImage->store('events/' . $event->id . '/gallery', 'public');
+                $event->images()->create([
+                    'image_url' => $imagePath,
+                    'image_type' => EventImageType::GALLERY,
+                ]);
+            }
+        }
+
+        return $event->fresh()->load(['banner', 'thumbnail', 'venue', 'gallery']);
+    }
+
+    /**
      * Get an event by its ID.
      *
      * @param  int $perPage  The number of events to show per page.
@@ -41,7 +104,9 @@ class EventService
     public function getevents(
         int $perPage = 10,
     ): LengthAwarePaginator {
-        return $this->event->paginate($perPage);
+        return $this->event
+            ->where('is_published', true)
+            ->paginate($perPage);
     }
 
     /**
@@ -51,11 +116,13 @@ class EventService
      *
      * @throws ModelNotFoundException  When event is not found
      *
-     * @return Event  The found event instance
+     * @return Event|null  The found event instance
      */
-    public function getEvent(string $id): Event
+    public function getEvent(string $id): Event | null
     {
-        return $this->event->findOrFail($id);
+        return $this->event
+            ->where('is_published', true)
+            ->find($id);
     }
 
     /**
@@ -106,6 +173,7 @@ class EventService
     ): Collection | LengthAwarePaginator {
         $inOneAndHalfMonths = now()->addMonths(1)->addDays(15);
         $query = $this->event
+            ->where('is_published', true)
             ->where('date', '>=', now())
             ->where('date', '<=', $inOneAndHalfMonths)
             ->orderBy('date', 'asc');
@@ -144,6 +212,7 @@ class EventService
         $maxDistanceInKm = config('constants.default_radius');
 
         $query =  $this->event
+            ->where('is_published', true)
             ->selectRaw("*, ST_Distance_Sphere(
                 POINT(longitude, latitude), 
                 ST_GeomFromText(?)
@@ -175,7 +244,9 @@ class EventService
         bool $isPaginated = false,
         bool $isHomeLimited = true,
     ): Collection | LengthAwarePaginator {
-        $query = $this->event->inRandomOrder();
+        $query = $this->event
+            ->where('is_published', true)
+            ->inRandomOrder();
 
         if($isPaginated) {
             return $query->paginate(config('constants.pagination_limit'));
@@ -199,13 +270,39 @@ class EventService
         return $user->eventBookmarks;
     }
 
+    /**
+     * Fetch the events that are trending.
+     * 
+     * @param string $eventId The ID of the event to retrieve
+     * 
+     * @return Event  The found event instance
+     */
     public function getEventForPurchase(string $eventId): Event
     {
         return $this->event
+            ->where('is_published', true)
             ->with([
                 'ticketTiers',
                 'seatPlanImage',
             ])
             ->findOrFail($eventId);
+    }
+
+    /**
+     * Fetch the events that are organized by the user.
+     * 
+     * @param User $user The user instance
+     * 
+     * @return mixed
+     */
+    public function getOrganizerEvents(User $user) 
+    {
+        return $user->events()
+            ->with([
+                'images',
+                'ticketTiers',
+                'seatPlanImage',
+            ])
+            ->orderBy('created_at', 'desc');
     }
 }

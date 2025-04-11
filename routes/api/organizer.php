@@ -12,11 +12,12 @@ Route::middleware(['auth:sanctum', 'mobile.verified', 'is.organizer'])->group(fu
             ->name('organizer.events.show');
         Route::post('/events', [EventController::class, 'store'])
             ->name('organizer.events.store');
+        Route::post('/events/{id}/images', [EventController::class, 'addImages'])
+            ->name('organizer.events.addImages');
         Route::put('/events/{id}', [EventController::class, 'update'])
             ->name('organizer.events.update');
         Route::delete('/events/{id}', [EventController::class, 'destroy'])
             ->name('organizer.events.destroy');
-
         // Add more organizer-specific routes here
     });
 });

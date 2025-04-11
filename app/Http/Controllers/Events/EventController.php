@@ -6,6 +6,10 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Services\EventService;
 use App\Http\Resources\EventResource;
+use App\Http\Requests\{
+    EventStoreRequest,
+    EventAddImagesRequest,
+};
 
 class EventController extends Controller
 {
@@ -64,6 +68,13 @@ class EventController extends Controller
     {
         try {
             $eventData = $this->eventService->getEvent($id);
+            if (!$eventData) {
+                return response()
+                    ->json(
+                        ['message' => 'Event not found'],
+                        404
+                    );
+            }
             $event = EventResource::make($eventData)
                 ->response()
                 ->getData(true);
@@ -166,6 +177,93 @@ class EventController extends Controller
                 ['message' => $e->getMessage()],
                 400
             );
+        }
+    }
+
+    /**
+     * Store a newly created resource in storage. (Step 1).
+     * 
+     * @param EventStoreRequest The request object
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function store(EventStoreRequest $request)
+    {
+        try {
+            $data = $request->validated();
+
+            $event = $this->eventService->createEvent($data);
+
+            return response()
+                ->json(
+                    ['event' => $event],
+                    201
+                );
+        } catch (\Exception $e) {
+            return response()
+            ->json(
+                ['message' => $e->getMessage()],
+                400
+            );
+        }
+    }
+
+    /**
+     * Add images to an event (Step 2).
+     *
+     * @param EventAddImagesRequest $request The request object
+     * @param string $id The ID of the event
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function addImages(EventAddImagesRequest $request, string $id)
+    {
+        try {
+            $event = $this->eventService->getEvent($id);
+            
+            // Check if user is authorized to update this event
+            if ($event->organizer_id !== $request->auth()->id()) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            // Get validated data
+            $images = $request->validated();
+
+            $updatedEvent = $this->eventService->addImages($event, $images);
+
+            return response()
+                ->json(
+                    [
+                        'message' => 'Event images added successfully',
+                        'event' => $updatedEvent
+                    ],
+                    200
+                );
+        } catch (\Exception $e) {
+            return response()
+                ->json(
+                    ['message' => $e->getMessage()],
+                    400,
+                );
+        }
+    }
+
+    public function organizerEvents(Request $request)
+    {
+        try {
+            $events = $this->eventService->getOrganizerEvents($request->user());
+
+            return response()
+                ->json(
+                    ['events' => $events],
+                    200
+                );
+        } catch (\Exception $e) {
+            return response()
+                ->json(
+                    ['message' => $e->getMessage()],
+                    400
+                );
         }
     }
 }
