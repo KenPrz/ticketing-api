@@ -217,4 +217,41 @@ class TicketController extends Controller
                 );
         }
     }
+
+    /**
+     * Mark the ticket as used.
+     *
+     * @param string $id The ID of the ticket to mark as used
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function markAsUsed(Request $request, string $id)
+    {
+        $user = $request->user();
+        if (!$user->isOrganizer()) {
+            return response()
+                ->json(
+                    ['message' => 'Unauthorized'],
+                    403
+                );
+        }
+        try {
+            $ticket = $this->ticketService->markTicketAsUsed(
+                $id,
+                $user,
+            );
+
+            return response()
+                ->json(
+                    ['ticket' => $ticket],
+                    200
+                );
+        } catch (\Exception $e) {
+            return response()
+                ->json(
+                    ['message' => $e->getMessage()],
+                    400
+                );
+        }
+    }
 }

@@ -30,6 +30,13 @@ enum TicketTransferStatus: string
      */
     case REJECTED = 'REJECTED';
     
+    /**
+     * When the trasfer is cancelled by the sender.
+     *
+     * @return string
+     */
+    case CANCELLED = 'CANCELLED';
+    
 
     /**
      * Get list of all ticket types.
@@ -42,6 +49,7 @@ enum TicketTransferStatus: string
             self::TRANSFERRED,
             self::PENDING,
             self::REJECTED,
+            self::CANCELLED,
         ];
     }
 }

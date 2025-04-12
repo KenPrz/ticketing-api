@@ -58,10 +58,14 @@ class TransferService
      * @param  int  $ticketId
      * @param  string  $email
      * @param  User  $currentUser
+     *
      * @return array
      */
-    public function transferTicket(int $ticketId, string $email, User $currentUser): array
-    {
+    public function transferTicket(
+        int $ticketId,
+        string $email,
+        User $currentUser,
+    ): array {
         // Find the ticket and the user to transfer to
         $ticket = Ticket::find($ticketId);
         $userToTransfer = User::where('email', $email)->first();
@@ -207,6 +211,70 @@ class TransferService
         return [
             'success' => true,
             'message' => 'Ticket transfer rejected successfully',
+            'status' => 200
+        ];
+    }
+
+    /**
+     * Cancel a ticket transfer.
+     *
+     * @param  int  $transferId
+     * @return array
+     */
+    public function cancelTransfer(
+        int $transferId,
+        User $currentUser,
+    ): array {
+        $transferHistory = \App\Models\TicketTransferHistory::find($transferId);
+
+        if (!$transferHistory) {
+            return [
+                'success' => false,
+                'message' => 'Transfer not found',
+                'status' => 404
+            ];
+        }
+
+        // Check if the ticket belongs to the authenticated user
+        if ($transferHistory->ticket->owner_id !== $currentUser->id) {
+            return [
+                'success' => false,
+                'message' => 'You do not own this ticket',
+                'status' => 403
+            ];
+        }
+
+        // Check if the current user is the one who initiated the transfer.
+        if ($transferHistory->from_user_id !== $currentUser->id) {
+            return [
+                'success' => false,
+                'message' => 'You are not authorized to cancel this transfer',
+                'status' => 403
+            ];
+        }
+
+        if ($transferHistory->status !== TicketTransferStatus::PENDING) {
+            return [
+                'success' => false,
+                'message' => 'This transfer cannot be cancelled',
+                'status' => 422
+            ];
+        }
+
+        // Update the transfer history
+        $transferHistory->status = TicketTransferStatus::CANCELLED;
+        $transferHistory->save();
+        
+        // Notify the recipient that the transfer was cancelled
+        $toUser = $transferHistory->toUser;
+        $toUser->notify(new \App\Notifications\TicketTransferCancelled($transferHistory));
+        
+        // Fire an event for the cancelled transfer
+        event(new \App\Events\TicketTransferCancelled($transferHistory));
+
+        return [
+            'success' => true,
+            'message' => 'Ticket transfer cancelled successfully',
             'status' => 200
         ];
     }

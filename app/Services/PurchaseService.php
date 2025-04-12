@@ -83,8 +83,6 @@ class PurchaseService
 
             foreach ($seatIds as $seatId) {
                 $seat = Seat::findOrFail($seatId);
-                $seat->is_occupied = true;
-                $seat->save();
 
                 $purchase = $this->purchase->create([
                     'placeholder_for_transaction_handler' => $this->createMockTransactionId(),
@@ -92,7 +90,7 @@ class PurchaseService
                     'purchased_by' => $user->id,
                 ]);
 
-                Ticket::create([
+                $ticket = Ticket::create([
                     'qr_code' => $this->generateQrDetails(),
                     'ticket_name' => "{$purchase->event->name} - {$user->name} - {$seat->section->value}",
                     'event_id' => $seat->event_id,
@@ -103,6 +101,10 @@ class PurchaseService
                     'is_used' => false,
                     'used_on' => null,
                 ]);
+
+                $seat->is_occupied = true;
+                $seat->ticket_id = $ticket->id;
+                $seat->save();
             }
 
             return $purchase;

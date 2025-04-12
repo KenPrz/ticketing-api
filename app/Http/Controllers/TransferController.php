@@ -124,4 +124,26 @@ class TransferController extends Controller
 
         return view('rejected');
     }
+
+    /**
+     * Cancel a ticket transfer.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $transferId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function cancelTicketTransfer(Request $request): JsonResponse
+    {
+        $transferId = $request->input('transfer_id');
+        $user = $request->user();
+        $result = $this->transferService->cancelTransfer(
+            $transferId,
+            $user,
+        );
+
+        return response()->json(
+            ['message' => $result['message']],
+            $result['status']
+        );
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\EventImageType;
 use App\Models\Event;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -30,6 +31,114 @@ class EventService
     }
 
     /**
+     * Create a new event with the given data.
+     *
+     * @param  array  $data  The data to create the event with
+     *
+     * @return Event  The created event instance
+     */
+    public function createEvent(array $data): Event
+    {
+        $event = $this->event->create($data);
+
+        return $event->fresh();
+    }
+
+    /**
+     * Add images to an event.
+     *
+     * @param Event $event The event to add images to
+     * @param array $images The images to add
+     *
+     * @return Event The updated event instance
+     */
+    public function addImages(Event $event, array $images): Event
+    {
+        // Handle single image types (banner, thumbnail, venue)
+        $singleImageTypes = [
+            'banner' => EventImageType::BANNER, 
+            'thumbnail' => EventImageType::THUMBNAIL, 
+            'venueImage' => EventImageType::VENUE,
+            'seatPlanImage' => EventImageType::SEAT_PLAN,
+        ];
+
+        foreach ($singleImageTypes as $key => $type) {
+            if (isset($images[$key])) {
+                // Delete existing image of this type if it exists
+                $event->images()
+                    ->where('image_type', $type)
+                    ->delete();
+
+                // Add the new image
+                $file = $images[$key];
+                $imagePath = $file->store('events/' . $event->id . '/' . strtolower($key), 'public');
+                $event->images()->create([
+                    'image_url' => $imagePath,
+                    'image_type' => $type,
+                ]);
+            }
+        }
+
+        // Handle gallery images (multiple)
+        if (isset($images['gallery']) && is_array($images['gallery'])) {
+            foreach ($images['gallery'] as $galleryImage) {
+                $imagePath = $galleryImage->store('events/' . $event->id . '/gallery', 'public');
+                $event->images()->create([
+                    'image_url' => $imagePath,
+                    'image_type' => EventImageType::GALLERY,
+                ]);
+            }
+        }
+
+        return $event->fresh()->load(['banner', 'thumbnail', 'venueImage', 'gallery', 'seatPlanImage']);
+    }
+
+    /**
+     * Publish an event by its ID.
+     *
+     * @param  Event $event The ID of the event to publish
+     *
+     * @throws ModelNotFoundException  When event is not found
+     * @throws \Exception  When event is already published
+     *
+     * @return Event  The published event instance
+     */
+    public function publishEvent(Event $event)
+    {
+        if ($event->is_published) {
+            throw new \Exception('Event is already published.');
+        }
+
+        $event->is_published = true;
+        $event->save();
+
+        return $event;
+    }
+
+    /**
+     * Unpublish an event by its ID.
+     *
+     * @param  Event $event The ID of the event to unpublish
+     *
+     * @throws ModelNotFoundException  When event is not found
+     * @throws \Exception  When event is already unpublished
+     *
+     * @return Event  The unpublished event instance
+     */
+    public function unpublishEvent(Event $event)
+    {
+
+        if (!$event->is_published) {
+            throw new \Exception('Event is already unpublished.');
+        }
+
+        $event->is_published = false;
+        $event->save();
+
+        return $event;
+    }
+
+    /**
      * Get an event by its ID.
      *
      * @param  int $perPage  The number of events to show per page.
@@ -41,7 +150,9 @@ class EventService
     public function getevents(
         int $perPage = 10,
     ): LengthAwarePaginator {
-        return $this->event->paginate($perPage);
+        return $this->event
+            ->where('is_published', true)
+            ->paginate($perPage);
     }
 
     /**
@@ -51,11 +162,13 @@ class EventService
      *
      * @throws ModelNotFoundException  When event is not found
      *
-     * @return Event  The found event instance
+     * @return Event|null  The found event instance
      */
-    public function getEvent(string $id): Event
+    public function getEvent(string $id): Event | null
     {
-        return $this->event->findOrFail($id);
+        return $this->event
+            ->where('is_published', true)
+            ->find($id);
     }
 
     /**
@@ -94,13 +207,19 @@ class EventService
 
     /**
      * Fetch the upcoming events in the next one and a half months.
-     * 
+     *
+     * @param bool $isPaginated
+     * @param bool $isHomeLimited 
+     *
      * @return Collection<Event> | LengthAwarePaginator The collection of upcoming events
      */
-    public function upcomingEvents(bool $isPaginated = false): Collection | LengthAwarePaginator
-    {
+    public function upcomingEvents(
+        bool $isPaginated = false,
+        bool $isHomeLimited = true,
+    ): Collection | LengthAwarePaginator {
         $inOneAndHalfMonths = now()->addMonths(1)->addDays(15);
         $query = $this->event
+            ->where('is_published', true)
             ->where('date', '>=', now())
             ->where('date', '<=', $inOneAndHalfMonths)
             ->orderBy('date', 'asc');
@@ -109,7 +228,12 @@ class EventService
                 return $query->paginate(config('constants.pagination_limit'));
             }
 
-        return $query->limit(config('constants.home_limit'))->get();
+            if ($isHomeLimited)
+            {
+                return $query->limit(config('constants.home_limit'))->get();
+            }
+
+            return $query->get();
     }
 
     /**
@@ -117,6 +241,8 @@ class EventService
      * 
      * @param  float  $latitude  The latitude of the user
      * @param  float  $longitude  The longitude of the user
+     * @param bool $isPaginated
+     * @param bool $isHomeLimited 
      * 
      * @return Collection<Event> | LengthAwarePaginator The collection of nearby events
      */
@@ -124,6 +250,7 @@ class EventService
         float $latitude,
         float $longitude,
         bool $isPaginated = false,
+        bool $isHomeLimited = true,
     ): Collection | LengthAwarePaginator {
         $userPoint = "POINT({$longitude} {$latitude})";
 
@@ -131,6 +258,7 @@ class EventService
         $maxDistanceInKm = config('constants.default_radius');
 
         $query =  $this->event
+            ->where('is_published', true)
             ->selectRaw("*, ST_Distance_Sphere(
                 POINT(longitude, latitude), 
                 ST_GeomFromText(?)
@@ -142,23 +270,40 @@ class EventService
             return $query->paginate(config('constants.pagination_limit'));
         }
 
-        return $query->limit(config('constants.home_limit'))->get();
+        if ($isHomeLimited)
+        {
+            return $query->limit(config('constants.home_limit'))->get();
+        }
+
+        return $query->get();
     }
 
     /**
      * Fetch the events that are recommended for the user.
      * 
+     * @param bool $isPaginated
+     * @param bool $isHomeLimited 
+     * 
      * @return Collection<Event> | LengthAwarePaginator  The collection of recommended events
      */
-    public function forYouEvents($isPaginated = false): Collection | LengthAwarePaginator
-    {
-        $query = $this->event->inRandomOrder();
+    public function forYouEvents(
+        bool $isPaginated = false,
+        bool $isHomeLimited = true,
+    ): Collection | LengthAwarePaginator {
+        $query = $this->event
+            ->where('is_published', true)
+            ->inRandomOrder();
 
         if($isPaginated) {
             return $query->paginate(config('constants.pagination_limit'));
         }
 
-        return $query->limit(config('constants.home_limit'))->get();
+        if ($isHomeLimited)
+        {
+            return $query->limit(config('constants.home_limit'))->get();
+        }
+
+        return $query->get();
     }
 
     /**
@@ -171,13 +316,125 @@ class EventService
         return $user->eventBookmarks;
     }
 
+    /**
+     * Fetch the events that are trending.
+     * 
+     * @param string $eventId The ID of the event to retrieve
+     * 
+     * @return Event  The found event instance
+     */
     public function getEventForPurchase(string $eventId): Event
     {
         return $this->event
+            ->where('is_published', true)
             ->with([
                 'ticketTiers',
                 'seatPlanImage',
             ])
             ->findOrFail($eventId);
+    }
+
+    /**
+     * Fetch the events that are organized by the user.
+     * 
+     * @param User $user The user instance
+     * 
+     * @return mixed
+     */
+    public function getOrganizerEvents(User $user) 
+    {
+        return $user->events()
+            ->with([
+                'images',
+                'ticketTiers',
+                'seatPlanImage',
+            ])
+            ->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Fetch a specific even that are organized by the user.
+     * 
+     * @param string $id The user instance
+     * 
+     * @return mixed
+     */
+    public function getOrganizerEvent(string $id) 
+    {
+        return $this->event->findOrFail($id);
+    }
+    
+    /**
+     * Fetch the dashboard data for the organizer.
+     * 
+     * @param User $user The user instance
+     * 
+     * @return array  The dashboard data
+     */
+    public function fetchOrganizerDashboardData(User $user): array
+    {
+        $events = $this->getOrganizerEvents($user)
+            ->where('is_published', true)
+            ->get();
+
+        $totalTicketSales = $events->sum(function ($event) {
+                return $event->ticketTiers()
+                    ->withCount('tickets')
+                    ->get()
+                    ->sum('tickets_count');
+            });
+
+        $revenue = $events->sum(function ($event) {
+                return $event->ticketTiers()
+                    ->withCount('tickets as sold_tickets')
+                    ->get()
+                    ->sum(function ($tier) {
+                        return $tier->sold_tickets * $tier->price;
+                    });
+            });
+
+        return [
+            'activeEvents' => $events->count(),
+            'totalTicketSales' => $totalTicketSales,
+            'revenue' => $revenue,
+            'attendees' => $totalTicketSales,
+        ];
+    }
+
+    /**
+     * Fetch the events that are organized by the user.
+     * 
+     * @param User $user The user instance
+     * 
+     * @return mixed
+     */
+    public function fetchOrganizerUpcomingEvents(User $user)
+    {
+        $data =  $this->getOrganizerEvents($user)
+            ->where('is_published', true)
+            ->where('date', '>=', now())
+            ->orderBy('date', 'asc')
+            ->limit(config('constants.home_limit'))
+            ->get();
+        
+        return $data->map(function ($event) {
+            return [
+                'id' => $event->id,
+                'name' => $event->name,
+                'date' => $event->date->format('M j, Y'),
+                'venue' => $event->venue,
+                'city' => $event->city,
+                'ticketSales' => [
+                    'sold' => $event->ticketTiers()
+                        ->withCount('tickets')
+                        ->get()
+                        ->sum('tickets_count'),
+                    'available' => $event->ticketTiers()
+                        ->withCount('tickets')
+                        ->get()
+                        ->sum('quantity'),
+                ],
+            ];
+        });
     }
 }

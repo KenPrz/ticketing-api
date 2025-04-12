@@ -40,7 +40,7 @@ class TicketService
     public function getMyTickets(User $user)
     {
         return $this->ticket->where('owner_id', $user->id)
-            ->with(['event', 'ticketTier', 'purchase', 'seat'])
+            ->with(['event', 'ticketTier', 'purchase', 'seat', 'transferStatus'])
             ->get();
     }
 
@@ -83,7 +83,7 @@ class TicketService
      *
      * @return Ticket The found ticket instance with loaded relationships
      */
-    public function getTicket(string $id, array $relations = ['event', 'ticketTier', 'owner', 'purchase.purchaser', 'seat']): Ticket
+    public function getTicket(string $id, array $relations = ['event', 'ticketTier', 'owner', 'purchase.purchaser', 'seat', 'transferStatus']): Ticket
     {
         return $this->ticket->with($relations)->findOrFail($id);
     }
@@ -209,5 +209,36 @@ class TicketService
         return $this->ticket->where('purchase_id', $purchaseId)
             ->with(['event', 'ticketTier', 'owner', 'seat'])
             ->get();
+    }
+
+    /**
+     * Mark a ticket as used.
+     *
+     * @param string $id The ID of the ticket to mark as used
+     *
+     * @throws ModelNotFoundException When ticket is not found
+     *
+     * @return Ticket The updated ticket instance
+     */
+    public function markTicketAsUsed(
+        string $id,
+        User $user,
+    ) {
+        $ticket = $this->getTicket($id);
+        if ($ticket->is_used) {
+            throw new \Exception('Ticket has already been used.');
+        }
+        if ($ticket->event->organizer_id !== $user->id) {
+            throw new \Exception('Unauthorized to mark this ticket as used.');
+        }
+
+        $ticket->update(
+            [
+                'is_used' => true,
+                'used_on' => now(),
+            ],
+        );
+
+        return $ticket->fresh();
     }
 }

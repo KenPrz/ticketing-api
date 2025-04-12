@@ -13,11 +13,11 @@ Route::get('/test', function () {
 
 //Qr Verify
 Route::get('/qr-verify', [QrVerifyController::class, 'verifyQr'])
-    ->name('qr.verify');
+    ->name('qr.verify')->middleware('auth:sanctum');
 
 // Barcode Verify
 Route::get('/barcode-verify', [QrVerifyController::class, 'verifyBarcode'])
-    ->name('barcode.verify');
+    ->name('barcode.verify')->middleware('auth:sanctum');
 
 Route::get('/transfers/{transferId}/accept', [TransferController::class, 'acceptTransfer'])
     ->name('tickets.transfer.accept')

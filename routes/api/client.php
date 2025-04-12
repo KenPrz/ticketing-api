@@ -3,7 +3,9 @@
 use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\Common\HomeController;
 use App\Http\Controllers\Events\EventController;
+use App\Http\Controllers\FriendController;
 use App\Http\Controllers\MapController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TransferController;
@@ -18,6 +20,13 @@ Route::prefix('/clients')
             // Home dashboard
             Route::get('/', [HomeController::class, 'index'])
                 ->name('home');
+            Route::get('/events/upcoming', [HomeController::class, 'listUpcomingEvents'])
+                ->name('home.upcoming');
+            Route::get('/events/nearby', [HomeController::class, 'listNearbyEvents'])
+                ->name('home.nearby');
+            Route::get('/events/for-you', [HomeController::class, 'listForYouEvents'])
+                ->name('home.for-you');
+
             // Client event viewing routes
             Route::get('/events', [EventController::class, 'index'])
                 ->name('events.index');
@@ -58,10 +67,48 @@ Route::prefix('/clients')
                 ->name('map.index');
 
             // Check if email is valid for transfer
-            Route::post('/transfers/check-email', [TransferController::class, 'checkTransferEmailValidity']);
-
+            Route::post('/transfers/check-email', [TransferController::class, 'checkTransferEmailValidity'])
+                ->name('transfers.check-email');
             // Initiate ticket transfer
-            Route::post('/transfers/ticket', [TransferController::class, 'transferTicket']);
+            Route::post('/transfers/ticket', [TransferController::class, 'transferTicket'])
+                ->name('transfers.ticket');
+            // Cancel ticket transfer
+            Route::post('/transfers/cancel', [TransferController::class, 'cancelTicketTransfer'])
+                ->name('transfers.cancel');
 
+            // Friend routes
+            Route::get('/friends', [FriendController::class, 'index'])
+                ->name('friends.index');
+            Route::get('/friends/sent-requests', [FriendController::class, 'getSentRequests'])
+                ->name('friends.sent-requests');
+            Route::get('/friends/received-requests', [FriendController::class, 'getReceivedRequests'])
+                ->name('friends.received-requests');
+            Route::post('/friends/send-request', [FriendController::class, 'sendRequest'])
+                ->name('friends.send-request');
+            Route::post('/friends/accept-request', [FriendController::class, 'acceptRequest'])
+                ->name('friends.accept-request');
+            Route::post('/friends/reject-request', [FriendController::class, 'rejectRequest'])
+                ->name('friends.reject-request');
+            Route::post('/friends/block-user', [FriendController::class, 'blockUser'])
+                ->name('friends.block-user');
+            Route::post('/friends/unblock-user', [FriendController::class, 'unblockUser'])
+                ->name('friends.unblock-user');
+            
+            // Notification routes
+            // List all notifications
+            Route::get('/notifications', [NotificationController::class, 'index'])
+                ->name('notifications.index');
+
+            // Get count of unread notifications
+            Route::get('/notifications/count', [NotificationController::class, 'unreadCount'])
+                ->name('notifications.unread.count');
+
+            // Mark a specific notification as read
+            Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])
+                ->name('notifications.mark.read');
+
+            // Mark all notifications as read
+            Route::patch('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])
+                ->name('notifications.mark.all.read');
         });
 });
