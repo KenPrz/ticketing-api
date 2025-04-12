@@ -133,8 +133,13 @@ class EventStoreRequest extends FormRequest
                         );
                     } elseif ((int)$ticket['quantity'] < 1) {
                         $validator->errors()->add(
-                            "tickets_data.$index.quantity", 
+                            "tickets_data.$index.quantity",
                             "The quantity must be at least 1 for ticket tier #" . ($index + 1)
+                        );
+                    } elseif ((int)$ticket['quantity'] > 850) {
+                        $validator->errors()->add(
+                            "tickets_data.$index.quantity", 
+                            "The quantity cannot exceed 850 for ticket tier #" . ($index + 1)
                         );
                     }
                 }

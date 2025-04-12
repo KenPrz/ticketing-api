@@ -149,7 +149,7 @@ class QrVerifyController extends Controller
                     'venue' => $data['event']['venue'],
                 ],
                 'seat' => [
-                    'section' => $data['seat']['section'],
+                    'section' => $data['seat']['section'] ?? null,
                     'row_and_seat' => $data['seat']['row'] . '-' . $data['seat']['number'],
                 ],
             ],
