@@ -227,7 +227,8 @@ class TicketController extends Controller
      */
     public function markAsUsed(Request $request, string $id)
     {
-        if (!$request->user()->isOrganizer()) {
+        $user = $request->user();
+        if (!$user->isOrganizer()) {
             return response()
                 ->json(
                     ['message' => 'Unauthorized'],
@@ -235,7 +236,10 @@ class TicketController extends Controller
                 );
         }
         try {
-            $ticket = $this->ticketService->markTicketAsUsed($id);
+            $ticket = $this->ticketService->markTicketAsUsed(
+                $id,
+                $user,
+            );
 
             return response()
                 ->json(

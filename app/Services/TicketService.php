@@ -220,10 +220,24 @@ class TicketService
      *
      * @return Ticket The updated ticket instance
      */
-    public function markTicketAsUsed(string $id)
-    {
+    public function markTicketAsUsed(
+        string $id,
+        User $user,
+    ) {
         $ticket = $this->getTicket($id);
-        $ticket->update(['is_used' => true]);
+        if ($ticket->is_used) {
+            throw new \Exception('Ticket has already been used.');
+        }
+        if ($ticket->event->organizer_id !== $user->id) {
+            throw new \Exception('Unauthorized to mark this ticket as used.');
+        }
+
+        $ticket->update(
+            [
+                'is_used' => true,
+                'used_on' => now(),
+            ],
+        );
 
         return $ticket->fresh();
     }

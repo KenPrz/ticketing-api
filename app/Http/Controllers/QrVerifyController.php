@@ -131,9 +131,12 @@ class QrVerifyController extends Controller
 
         return response()->json([
             'message' => $message,
-            'is_allowed_to_mark_as_used' => $isAllowedToMarkAsUsed,
+            'is_allowed_to_mark_as_used' => $isTicketUsed 
+                ? false
+                : $isAllowedToMarkAsUsed,
             'is_ticket_used' => $isTicketUsed,
             'ticket_data' => [
+                'id' => $data['id'],
                 'account_code' => $data['owner_id'],
                 'ticket_code' => $actualBarcode, // Use the barcode part from the stored data
                 'date' => DateFormatterHelper::dayFull($data['event']['date']),
