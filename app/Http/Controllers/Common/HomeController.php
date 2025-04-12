@@ -175,4 +175,28 @@ class HomeController extends Controller
                 200
             );
     }
+
+    /**
+     * Display the organizer's home page.
+     * 
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function organizerHome(Request $request)
+    {
+        $user = $request->user();
+        $data = [
+            'metrics' => $this->eventService->fetchOrganizerDashboardData($user),
+            'upcomingEvents' => $this->eventService->fetchOrganizerUpcomingEvents($user),
+        ];
+
+        return response()
+            ->json(
+                [
+                    $data,
+                ],
+                200
+            );
+    }
 }

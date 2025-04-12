@@ -210,4 +210,21 @@ class TicketService
             ->with(['event', 'ticketTier', 'owner', 'seat'])
             ->get();
     }
+
+    /**
+     * Mark a ticket as used.
+     *
+     * @param string $id The ID of the ticket to mark as used
+     *
+     * @throws ModelNotFoundException When ticket is not found
+     *
+     * @return Ticket The updated ticket instance
+     */
+    public function markTicketAsUsed(string $id)
+    {
+        $ticket = $this->getTicket($id);
+        $ticket->update(['is_used' => true]);
+
+        return $ticket->fresh();
+    }
 }

@@ -362,4 +362,78 @@ class EventService
     {
         return $this->event->findOrFail($id);
     }
+    
+    /**
+     * Fetch the dashboard data for the organizer.
+     * 
+     * @param User $user The user instance
+     * 
+     * @return array  The dashboard data
+     */
+    public function fetchOrganizerDashboardData(User $user): array
+    {
+        $events = $this->getOrganizerEvents($user)
+            ->where('is_published', true)
+            ->get();
+
+        $totalTicketSales = $events->sum(function ($event) {
+                return $event->ticketTiers()
+                    ->withCount('tickets')
+                    ->get()
+                    ->sum('tickets_count');
+            });
+
+        $revenue = $events->sum(function ($event) {
+                return $event->ticketTiers()
+                    ->withCount('tickets as sold_tickets')
+                    ->get()
+                    ->sum(function ($tier) {
+                        return $tier->sold_tickets * $tier->price;
+                    });
+            });
+
+        return [
+            'activeEvents' => $events->count(),
+            'totalTicketSales' => $totalTicketSales,
+            'revenue' => $revenue,
+            'attendees' => $totalTicketSales,
+        ];
+    }
+
+    /**
+     * Fetch the events that are organized by the user.
+     * 
+     * @param User $user The user instance
+     * 
+     * @return mixed
+     */
+    public function fetchOrganizerUpcomingEvents(User $user)
+    {
+        $data =  $this->getOrganizerEvents($user)
+            ->where('is_published', true)
+            ->where('date', '>=', now())
+            ->orderBy('date', 'asc')
+            ->limit(config('constants.home_limit'))
+            ->get();
+        
+        return $data->map(function ($event) {
+            return [
+                'id' => $event->id,
+                'name' => $event->name,
+                'date' => $event->date->format('M j, Y'),
+                'venue' => $event->venue,
+                'city' => $event->city,
+                'ticketSales' => [
+                    'sold' => $event->ticketTiers()
+                        ->withCount('tickets')
+                        ->get()
+                        ->sum('tickets_count'),
+                    'available' => $event->ticketTiers()
+                        ->withCount('tickets')
+                        ->get()
+                        ->sum('quantity'),
+                ],
+            ];
+        });
+    }
 }

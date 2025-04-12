@@ -19,6 +19,7 @@ class QrVerifyController extends Controller
      */
     public function verifyQr(Request $request): JsonResponse
     {
+        $user = $request->user();
         // Validate the incoming request
         $request->validate([
             'qr_code' => 'required|string',
@@ -33,8 +34,16 @@ class QrVerifyController extends Controller
             ->first(); // Use first() to get the model instance or null
 
         if ($ticket) {
+            $isUserOrganizer = $user->isOrganizer();
+            if ($isUserOrganizer) {
+                $isAllowedToMarkAsUsed = $ticket->event->organizer_id === $request->user()->id;
+            }
             // Use a helper method to format the response
-            return $this->formatTicketResponse($ticket, 'QR code is valid.');
+            return $this->formatTicketResponse(
+                $ticket,
+                'QR code is valid.',
+                $isAllowedToMarkAsUsed ?? false,
+            );
         } else {
             return response()->json(['message' => 'Invalid QR code.'], 404);
         }
@@ -49,6 +58,7 @@ class QrVerifyController extends Controller
      */
     public function verifyBarcode(Request $request): JsonResponse
     {
+        $user = $request->user();
         // Validate the incoming request
         $request->validate([
             'barcode' => 'required|string',
@@ -69,8 +79,16 @@ class QrVerifyController extends Controller
             ->first(); // Use first() to get the model instance or null
 
         if ($ticket) {
+            $isUserOrganizer = $user->isOrganizer();
+            if ($isUserOrganizer) {
+                $isAllowedToMarkAsUsed = $ticket->event->organizer_id === $request->user()->id;
+            }
              // Use a helper method to format the response
-            return $this->formatTicketResponse($ticket, 'Barcode is valid.');
+            return $this->formatTicketResponse(
+                $ticket,
+                'Barcode is valid.',
+                $isAllowedToMarkAsUsed ?? false,
+            );
         } else {
              // Optional: As a fallback, check if the input *was* the full QR code string
              $ticketFallback = Ticket::with(['seat', 'event', 'event.banner'])
@@ -93,8 +111,17 @@ class QrVerifyController extends Controller
      * @param string $message The success message to include.
      * @return JsonResponse
      */
-    private function formatTicketResponse(Ticket $ticket, string $message): JsonResponse
-    {
+    private function formatTicketResponse(
+        Ticket $ticket,
+        string $message,
+        bool $isAllowedToMarkAsUsed = false,
+    ): JsonResponse {
+        $isTicketUsed = $ticket->is_used;
+
+        if ($isTicketUsed) {
+            $message = 'This ticket has already been used.';
+        }
+
         // Convert the ticket and its loaded relations to an array
         $data = $ticket->toArray();
 
@@ -104,6 +131,8 @@ class QrVerifyController extends Controller
 
         return response()->json([
             'message' => $message,
+            'is_allowed_to_mark_as_used' => $isAllowedToMarkAsUsed,
+            'is_ticket_used' => $isTicketUsed,
             'ticket_data' => [
                 'account_code' => $data['owner_id'],
                 'ticket_code' => $actualBarcode, // Use the barcode part from the stored data
