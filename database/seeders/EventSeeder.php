@@ -22,7 +22,7 @@ class EventSeeder extends Seeder
 {
 
     /**
-     * The base image link for event images.
+     * The base image link for event images (fallback).
      *
      * @var string
      */
@@ -187,7 +187,7 @@ class EventSeeder extends Seeder
     }
 
     /**
-     * Generate an image link for the event or merchandise.
+     * Generate an image path for the event or merchandise.
      *
      * @param \Illuminate\Database\Eloquent\Model $model
      * @param \App\Enums\EventImageType $type
@@ -213,7 +213,8 @@ class EventSeeder extends Seeder
         $randomImage = $sampleImages[array_rand($sampleImages)];
         
         // Determine storage path based on image type
-        $storagePath = 'images/' . strtolower($type->value);
+        $modelType = ($model instanceof Event) ? 'events' : 'merchandise';
+        $storagePath = "{$modelType}/{$model->id}/" . strtolower($type->value);
         
         // Create a unique filename
         $filename = Str::uuid() . '.png';
@@ -225,16 +226,14 @@ class EventSeeder extends Seeder
             $filename
         );
         
-        // Generate the URL for accessing the image using asset helper
-        return asset("storage/{$imagePath}");
+        // Return just the path without the full URL
+        return $imagePath;
     }
 
     /**
-     * Summary of moveSeatPlanToStorage
+     * Move seat plan image to storage and return the path
      *
-     * @param mixed $event
      * @param \App\Enums\EventImageType $type
-     * @param string $color
      *
      * @return string
      */
@@ -249,8 +248,9 @@ class EventSeeder extends Seeder
             return self::IMAGE_BASE_LINK . 'gray/white?text=seat_plan_not_found';
         }
         
-        // Determine storage path based on image type
-        $storagePath = 'images/seat_plans/' . strtolower($type->value);
+        // Determine storage path
+        $storagePath = 'events/seat_plans';
+        
         // Create a unique filename
         $filename = Str::uuid() . '.jpg';
         
@@ -261,7 +261,7 @@ class EventSeeder extends Seeder
             $filename
         );
         
-        // Generate the URL for accessing the image using asset helper
-        return asset("storage/{$imagePath}");
+        // Return just the path without the full URL
+        return $imagePath;
     }
 }

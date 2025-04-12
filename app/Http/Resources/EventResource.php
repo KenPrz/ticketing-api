@@ -25,7 +25,7 @@ class EventResource extends JsonResource
                 'thumbnail' => $this->thumbnail?->image_url,
                 'venue' => $this->venueImage?->image_url,
                 'gallery' => $this->gallery?->pluck('image_url')->toArray(),
-                'merchandise' => $this->fetchMerch(),
+                'merchandise' => $this?->fetchMerch(),
             ],
             'date' => DateFormatterHelper::dayShort($this->date),
             'isBookmarked' => $this->isBookmarked,
@@ -36,7 +36,7 @@ class EventResource extends JsonResource
             'city' => $this->city,
             'organizer' => $this->organizer->name,
             'priceRange' => $this->fetchPriceRange(),
-            'ticket_tiers' => $this->ticketTiers->map(fn($tier) => [
+            'ticket_tiers' => $this->ticketTiers?->map(fn($tier) => [
                 'id' => $tier->id,
                 'description' => $tier->ticket_desc,
                 'tier_name' => $tier->tier_name,
@@ -53,6 +53,11 @@ class EventResource extends JsonResource
     private function fetchPriceRange(): string
     {
         $prices = $this->ticketTiers->pluck('price')->toArray();
+
+        if(empty($prices)) {
+            return '₱0.00';
+        }
+
         $minPrice = min($prices);
         $maxPrice = max($prices);
 

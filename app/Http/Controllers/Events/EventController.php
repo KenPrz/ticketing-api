@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Events;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Services\EventService;
+use App\Services\{
+    EventService,
+    TicketTierService,
+};
 use App\Http\Resources\EventResource;
 use App\Http\Requests\{
     EventStoreRequest,
@@ -20,13 +23,22 @@ class EventController extends Controller
     protected $eventService;
 
     /**
+     * @var TicketTierService $ticketTierService An instance of the TicketTierService used to handle ticket tier-related operations.
+     */
+    protected $ticketTierService;
+
+    /**
      * EventController constructor.
      *
      * @param EventService $eventService The service used to handle event-related operations.
+     * @param TicketTierService $ticketTierService The service used to handle ticket tier-related operations.
      */
-    public function __construct(EventService $eventService)
-    {
+    public function __construct(
+        EventService $eventService,
+        TicketTierService $ticketTierService
+    ) {
         $this->eventService = $eventService;
+        $this->ticketTierService = $ticketTierService;
     }
 
     /**
@@ -82,7 +94,7 @@ class EventController extends Controller
             return response()
                 ->json(
                     $event,
-                    200
+                    200,
                 );
         } catch (\Exception $e) {
             return response()
@@ -191,12 +203,40 @@ class EventController extends Controller
     {
         try {
             $data = $request->validated();
+            $eventData = [
+                'name' => $data['name'],
+                'organizer_id' => $data['organizer_id'],
+                'date' => $data['date'],
+                'time' => $data['time'],
+                'description' => $data['description'],
+                'venue' => $data['venue'],
+                'longitude' => $data['longitude'],
+                'latitude' => $data['latitude'],
+                'city' => $data['city'],
+                'category' => $data['category'],
+                'is_published' => true,
+            ];
 
-            $event = $this->eventService->createEvent($data);
+            $images = [
+                'banner' => $data['banner'],
+                'thumbnail' => $data['thumbnail'],
+                'seatPlanImage' => $data['seatPlanImage'],
+                'venueImage' => $data['venueImage'],
+                'gallery' => $data['gallery'] ?? [],
+            ];
+
+            $tickets = json_decode($data['tickets']) ?? [];
+            $event = $this->eventService->createEvent($eventData);
+
+            $updatedEvent = $this->eventService->addImages($event, $images);
+            $this->ticketTierService->createTicketsAndSeats(
+                $updatedEvent,
+                $tickets
+            );
 
             return response()
                 ->json(
-                    ['event' => $event],
+                    ['event' => $updatedEvent],
                     201
                 );
         } catch (\Exception $e) {

@@ -45,7 +45,7 @@ class HomeController extends Controller
             $requestData['recent_longitude'],
         );
         $forYouEvents = $this->eventService->forYouEvents();
-        
+
         $feedData = [
             'upcoming_events' => EventResource::collection($upcomingEvents)
                 ->response()

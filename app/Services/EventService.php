@@ -58,7 +58,8 @@ class EventService
         $singleImageTypes = [
             'banner' => EventImageType::BANNER, 
             'thumbnail' => EventImageType::THUMBNAIL, 
-            'venueImage' => EventImageType::VENUE
+            'venueImage' => EventImageType::VENUE,
+            'seatPlanImage' => EventImageType::SEAT_PLAN,
         ];
 
         foreach ($singleImageTypes as $key => $type) {
@@ -89,7 +90,7 @@ class EventService
             }
         }
 
-        return $event->fresh()->load(['banner', 'thumbnail', 'venueImage', 'gallery']);
+        return $event->fresh()->load(['banner', 'thumbnail', 'venueImage', 'gallery', 'seatPlanImage']);
     }
 
     /**
