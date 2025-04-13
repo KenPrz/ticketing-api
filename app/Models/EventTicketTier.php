@@ -83,7 +83,7 @@ class EventTicketTier extends Model
     public function seatsByTicketTier()
     {
         return $this->hasMany(Seat::class, 'event_id', 'event_id')
-                    ->where('section', $this->tier_name)
+                    ->where('section', $this->ticket_type)
                     ->orderBy('row')
                     ->orderByRaw('CAST(number AS UNSIGNED) ASC');
     }
