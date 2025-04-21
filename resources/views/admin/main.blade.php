@@ -20,9 +20,9 @@
                     </div>
                 @endif
                 
-                <form method="POST" action="{{ url('/admin/login') }}" class="space-y-6">
+                <form method="POST" action="{{ route('admin.login') }}" class="space-y-6">
                     @csrf
-                    
+
                     <div>
                         <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
                         <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus
@@ -49,9 +49,8 @@
                                 Remember me
                             </label>
                         </div>
-                        <a href="#" class="text-sm text-primary hover:text-secondary">Forgot Password?</a>
                     </div>
-                    
+
                     <div>
                         <button type="submit" class="w-full bg-gradient-to-r from-primary-gradient-from to-primary-gradient-to hover:from-secondary hover:to-tertiary text-white font-medium py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-300 transform hover:scale-[1.02]">
                             Sign In

@@ -4,6 +4,8 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Enums\UserTypes;
 use Symfony\Component\HttpFoundation\Response;
 
 class AdminAccessMiddleware
@@ -15,6 +17,22 @@ class AdminAccessMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('admin.login')
+                ->with('error', 'Please login to access the admin portal.');
+        }
+
+        // Check if authenticated user is an admin
+        if (Auth::user()->user_type !== UserTypes::ADMIN) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            
+            return redirect()->route('admin.login')
+                ->with('error', 'You do not have permission to access the admin portal.');
+        }
+        
         return $next($request);
     }
 }
