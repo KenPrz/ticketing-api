@@ -7,12 +7,12 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <!-- Logo and Brand -->
-                <div class="flex items-center">
+                <a href="{{ route('home') }}" class="flex items-center">
                     <div class="flex-shrink-0 flex items-center">
                         <img class="h-10 w-auto" src="{{ asset('logo.png') }}" alt="Q-Phoria Logo">
                         <span class="ml-2 text-xl font-semibold text-gray-800">Q-Phoria</span>
                     </div>
-                </div>
+                </a>
                 
                 <!-- Navigation Links - Center -->
                 <div class="hidden md:flex md:items-center md:space-x-8">
