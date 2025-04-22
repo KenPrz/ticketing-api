@@ -8,14 +8,16 @@ use App\Enums\{
 };
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasFactory, Notifiable, HasApiTokens, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -55,6 +57,36 @@ class User extends Authenticatable
             'password' => 'hashed',
             'user_type' => UserTypes::class,
         ];
+    }
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = [
+        'avatar_url',
+    ];
+
+    /**
+     * Get the avatar URL attribute.
+     *
+     * @return string|null
+     */
+    public function getAvatarUrlAttribute()
+    {
+        // If it's null, return null
+        if (empty($this->attributes['avatar'])) {
+            return null;
+        }
+
+        // If it's already a URL, return as is
+        if (filter_var($this->attributes['avatar'], FILTER_VALIDATE_URL) || str_starts_with($this->attributes['avatar'], 'http')) {
+            return $this->attributes['avatar'];
+        }
+
+        // Otherwise, generate URL from the stored path
+        return Storage::disk('public')->url($this->attributes['avatar']);
     }
 
     /**

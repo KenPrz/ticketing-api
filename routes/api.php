@@ -30,4 +30,3 @@ Route::get('/transfers/{transferId}/reject', [TransferController::class, 'reject
 require __DIR__.'/api/auth.php';
 require __DIR__.'/api/client.php';
 require __DIR__.'/api/organizer.php';
-require __DIR__.'/api/admin.php';
