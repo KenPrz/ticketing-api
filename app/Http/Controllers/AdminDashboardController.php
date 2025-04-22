@@ -80,4 +80,67 @@ class AdminDashboardController extends Controller
         return view('admin.users', compact('users'));
     }
 
+    /**
+     * Show the user details page.
+     *
+     * @param  int  $id
+     * @return \Illuminate\View\View
+     */
+    public function userDetails($id)
+    {
+        $user = User::findOrFail($id);
+
+        return view('admin.user-details', compact('user'));
+    }
+
+    /**
+     * Show the edit user page.
+     *
+     * @param  int  $id
+     * @return \Illuminate\View\View
+     */
+    public function editUser($id)
+    {
+        $user = User::findOrFail($id);
+
+        return view('admin.user-edit', compact('user'));
+    }
+
+    /**
+     * Update the user.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updateUser(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'user_type' => 'required|in:CLIENT,ORGANIZER,ADMIN',
+            'mobile' => 'nullable|string|max:15',
+        ]);
+
+        $user->update($validated);
+
+        return redirect()->route('admin.user.details', ['user' => $user->id])
+            ->with('success', 'User updated successfully.');
+    }
+
+    /**
+     * Delete the user.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function deleteUser($id)
+    {
+        $user = User::findOrFail($id);
+        $user->delete();
+
+        return redirect()->route('admin.users')
+            ->with('success', 'User deleted successfully.');
+    }
 }

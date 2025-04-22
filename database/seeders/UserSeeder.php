@@ -22,16 +22,16 @@ class UserSeeder extends Seeder
      * @var class-string<\Illuminate\Database\Eloquent\Model>
      */
     protected const AVATARS = [
-        '/storage/images/avatars/img_1.png',
-        '/storage/images/avatars/img_2.png',
-        '/storage/images/avatars/img_3.png',
-        '/storage/images/avatars/img_4.png',
-        '/storage/images/avatars/img_5.png',
-        '/storage/images/avatars/img_6.png',
-        '/storage/images/avatars/img_7.png',
-        '/storage/images/avatars/img_8.png',
-        '/storage/images/avatars/img_9.png',
-        '/storage/images/avatars/img_10.png',
+        'images/avatars/img_1.png',
+        'images/avatars/img_2.png',
+        'images/avatars/img_3.png',
+        'images/avatars/img_4.png',
+        'images/avatars/img_5.png',
+        'images/avatars/img_6.png',
+        'images/avatars/img_7.png',
+        'images/avatars/img_8.png',
+        'images/avatars/img_9.png',
+        'images/avatars/img_10.png',
     ];
 
     /**
@@ -118,7 +118,7 @@ class UserSeeder extends Seeder
                     $users[] = [
                         'name' => $this->faker->name(),
                         'email' => $this->faker->unique()->safeEmail(),
-                        'avatar' => rtrim(env('APP_URL'), '/') . $this->faker->randomElement(self::AVATARS),
+                        'avatar' => $this->faker->randomElement(self::AVATARS),
                         'mobile' => $this->faker->unique()->numerify('+639#########'),
                         'user_type' => $userType->value,
                         'email_verified_at' => now(),

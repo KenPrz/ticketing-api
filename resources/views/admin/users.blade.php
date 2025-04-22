@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@use(App\Enums\UserTypes)
 
 @section('content')
     <div class="min-h-screen bg-gray-100">
@@ -97,8 +98,24 @@
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <div class="flex items-center">
-                                                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600">
-                                                        <span>{{ substr($user->name, 0, 1) }}</span>
+                                                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 overflow-hidden">
+                                                        @if($user->avatar)
+                                                            @php
+                                                                // Handle potential localhost duplication in the URL
+                                                                $avatarPath = $user->avatar;
+                                                                
+                                                                // Remove duplicate localhost if present
+                                                                $avatarPath = preg_replace('#^/?localhost/#', '', $avatarPath);
+                                                                
+                                                                // Generate the proper URL
+                                                                $avatarUrl = filter_var($avatarPath, FILTER_VALIDATE_URL) ? 
+                                                                    $avatarPath : 
+                                                                    asset('storage/' . $avatarPath);
+                                                            @endphp
+                                                            <img src="{{ $avatarUrl }}" alt="{{ $user->name }}" class="h-full w-full object-cover">
+                                                        @else
+                                                            <span>{{ substr($user->name, 0, 1) }}</span>
+                                                        @endif
                                                     </div>
                                                     <div class="ml-4">
                                                         <div class="text-sm font-medium text-gray-900">
@@ -136,10 +153,10 @@
                                                 {{ $user->created_at->format('M d, Y') }}
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <a href="#" class="text-primary hover:text-secondary mr-3">View</a>
-                                                <a href="#" class="text-gray-600 hover:text-gray-900 mr-3">Edit</a>
-                                                @if($user->user_type != 'admin')
-                                                    <form action="#" method="POST" class="inline">
+                                                <a href="{{ route('admin.user.details', ['user' => $user->id]) }}" class="text-primary hover:text-secondary mr-3">View</a>
+                                                <a href="{{ route('admin.user.edit', ['user' => $user->id]) }}" class="text-gray-600 hover:text-gray-900 mr-3">Edit</a>
+                                                @if($user->user_type != UserTypes::ADMIN->value)
+                                                    <form action="{{ route('admin.user.delete', ['user' => $user->id]) }}" method="POST" class="inline">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="text-danger hover:text-opacity-90" onclick="return confirm('Are you sure you want to delete this user?')">Delete</button>

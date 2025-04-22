@@ -19,7 +19,7 @@ class AdminAccessMiddleware
     {
         // Check if user is authenticated
         if (!Auth::check()) {
-            return redirect()->route('admin.login')
+            return redirect()->route('admin.main')
                 ->with('error', 'Please login to access the admin portal.');
         }
 
@@ -29,7 +29,7 @@ class AdminAccessMiddleware
             $request->session()->invalidate();
             $request->session()->regenerateToken();
             
-            return redirect()->route('admin.login')
+            return redirect()->route('admin.main')
                 ->with('error', 'You do not have permission to access the admin portal.');
         }
         
