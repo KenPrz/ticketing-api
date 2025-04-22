@@ -20,11 +20,7 @@
                     class="px-3 py-2 rounded-md text-sm font-medium {{ $active === 'users' ? 'text-gray-900 bg-gray-100' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100' }}">
                     Users
                 </a>
-                <a href="#" 
-                    class="px-3 py-2 rounded-md text-sm font-medium {{ $active === 'events' ? 'text-gray-900 bg-gray-100' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100' }}">
-                    Events
-                </a>
-                <a href="#" 
+                <a href="#"
                     class="px-3 py-2 rounded-md text-sm font-medium {{ $active === 'reports' ? 'text-gray-900 bg-gray-100' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100' }}">
                     Reports
                 </a>
@@ -75,10 +71,6 @@
                 <a href="{{ route('admin.users') }}" 
                     class="block px-3 py-2 rounded-md text-base font-medium {{ $active === 'users' ? 'text-gray-900 bg-gray-100' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100' }}">
                     Users
-                </a>
-                <a href="#" 
-                    class="block px-3 py-2 rounded-md text-base font-medium {{ $active === 'events' ? 'text-gray-900 bg-gray-100' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100' }}">
-                    Events
                 </a>
                 <a href="#" 
                     class="block px-3 py-2 rounded-md text-base font-medium {{ $active === 'reports' ? 'text-gray-900 bg-gray-100' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100' }}">

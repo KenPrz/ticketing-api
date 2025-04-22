@@ -116,9 +116,6 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="bg-gray-50 px-4 py-3 sm:px-6">
-                            <a href="#" class="text-sm font-medium text-primary hover:text-secondary">View all events →</a>
-                        </div>
                     </div>
                     
                     <!-- Upcoming Events Card -->
@@ -139,9 +136,6 @@
                                     </dl>
                                 </div>
                             </div>
-                        </div>
-                        <div class="bg-gray-50 px-4 py-3 sm:px-6">
-                            <a href="#" class="text-sm font-medium text-primary hover:text-secondary">View upcoming events →</a>
                         </div>
                     </div>
                     
@@ -165,9 +159,6 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="bg-gray-50 px-4 py-3 sm:px-6">
-                            <a href="#" class="text-sm font-medium text-primary hover:text-secondary">View ongoing events →</a>
-                        </div>
                     </div>
                     
                     <!-- Past Events Card -->
@@ -188,9 +179,6 @@
                                     </dl>
                                 </div>
                             </div>
-                        </div>
-                        <div class="bg-gray-50 px-4 py-3 sm:px-6">
-                            <a href="#" class="text-sm font-medium text-primary hover:text-secondary">View past events →</a>
                         </div>
                     </div>
                 </div>

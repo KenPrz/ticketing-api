@@ -38,18 +38,6 @@ class AdminDashboardController extends Controller
     }
 
     /**
-     * Show the events page.
-     *
-     * @return \Illuminate\View\View
-     */
-    public function events(AdminAdminEventsPageRequest $request)
-    {
-        $events = Event::all();
-
-        return view('admin.events', compact('events'));
-    }
-
-    /**
      * Show the users page.
      *
      * @return \Illuminate\View\View
