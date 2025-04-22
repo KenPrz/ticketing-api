@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@use(App\Enums\UserTypes)
 
 @section('content')
     <div class="min-h-screen bg-gray-100">
@@ -106,22 +107,20 @@
                                             <p class="mt-1 text-sm text-danger">{{ $message }}</p>
                                         @enderror
                                     </div>
-                                    
                                     <!-- User Type -->
-                                    <div>
-                                        <label for="user_type" class="block text-sm font-medium text-gray-700 mb-1">User Type</label>
-                                        <select id="user_type" name="user_type" 
-                                            class="block w-full h-10 px-3 border-gray-300 rounded-md shadow-sm 
-                                            focus:ring-primary focus:border-primary 
-                                            @error('user_type') border-danger @enderror">
-                                            <option value="CLIENT" {{ (old('user_type', $user->user_type) == 'CLIENT') ? 'selected' : '' }}>Client</option>
-                                            <option value="ORGANIZER" {{ (old('user_type', $user->user_type) == 'ORGANIZER') ? 'selected' : '' }}>Organizer</option>
-                                            <option value="ADMIN" {{ (old('user_type', $user->user_type) == 'ADMIN') ? 'selected' : '' }}>Admin</option>
-                                        </select>
-                                        @error('user_type')
-                                            <p class="mt-1 text-sm text-danger">{{ $message }}</p>
-                                        @enderror
-                                    </div>
+                                     @if($user->user_type != UserTypes::ADMIN)
+                                        <div>
+                                            <label for="user_type" class="block text-sm font-medium text-gray-700 mb-1">User Type</label>
+                                            <select id="user_type" name="user_type" 
+                                                class="block w-full h-10 px-3 border-gray-300 rounded-md shadow-sm 
+                                                focus:ring-primary focus:border-primary 
+                                                @error('user_type') border-danger @enderror">
+                                                <option value="CLIENT" {{ (old('user_type', $user->user_type) === UserTypes::CLIENT) ? 'selected' : '' }}>Client</option>
+                                                <option value="ORGANIZER" {{ (old('user_type', $user->user_type) === UserTypes::ORGANIZER) ? 'selected' : '' }}>Organizer</option>
+                                                <option value="ADMIN" {{ (old('user_type', $user->user_type) === UserTypes::ADMIN) ? 'selected' : '' }}>Admin</option>
+                                            </select>
+                                        </div>
+                                    @endif
                                 </div>
                                 
                                 <!-- Right Column - Avatar Display (no edit) -->
