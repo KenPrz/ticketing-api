@@ -215,7 +215,7 @@ class EventService
      */
     public function upcomingEvents(
         bool $isPaginated = false,
-        bool $isHomeLimited = true,
+        bool $isHomeLimited = false,
     ): Collection | LengthAwarePaginator {
         $inOneAndHalfMonths = now()->addMonths(1)->addDays(15);
         $query = $this->event
@@ -250,7 +250,7 @@ class EventService
         float $latitude,
         float $longitude,
         bool $isPaginated = false,
-        bool $isHomeLimited = true,
+        bool $isHomeLimited = false,
     ): Collection | LengthAwarePaginator {
         $userPoint = "POINT({$longitude} {$latitude})";
 

@@ -34,7 +34,7 @@ class EventResource extends JsonResource
             'time' => $this->time,
             'venue' => $this->venue,
             'city' => $this->city,
-            'organizer' => $this->organizer->name,
+            'organizer' => $this?->organizer?->name,
             'priceRange' => $this->fetchPriceRange(),
             'ticket_tiers' => $this->ticketTiers?->map(fn($tier) => [
                 'id' => $tier->id,
