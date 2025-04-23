@@ -3,6 +3,7 @@
 use App\Http\Controllers\Common\ApiKeyController;
 use App\Http\Controllers\Common\AuthController;
 use App\Http\Controllers\Common\OtpController;
+use App\Http\Controllers\UserProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -48,4 +49,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->name('verify-otp');
     Route::post('/resend-otp', [OtpController::class, 'resendOtp'])
         ->name('resend-otp');
+    
+    // Profile routes
+    Route::get('/profile', [UserProfileController::class, 'index'])
+        ->name('profile.index');
+    Route::post('/profile', [UserProfileController::class, 'update'])
+        ->name('profile.update');
+    Route::post('/profile/avatar', [UserProfileController::class, 'updateAvatar'])
+        ->name('profile.update.avatar');
+    Route::patch('/profile/password', [UserProfileController::class, 'updatePassword'])
+        ->name('profile.update.password');
 });
