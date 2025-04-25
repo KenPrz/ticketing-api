@@ -17,6 +17,8 @@ Route::middleware(['auth:sanctum', 'mobile.verified', 'is.organizer'])->group(fu
             ->name('organizer.events.index');
         Route::get('/events/{id}', [EventController::class, 'show'])
             ->name('organizer.events.show');
+        Route::get('/events/{id}/details', [EventController::class, 'eventDetails'])
+            ->name('organizer.events.details');
         Route::post('/events', [EventController::class, 'store'])
             ->name('organizer.events.store');
         Route::post('/events/{id}/images', [EventController::class, 'addImages'])

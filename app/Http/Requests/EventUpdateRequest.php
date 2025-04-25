@@ -8,7 +8,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
-class EventStoreRequest extends FormRequest
+class EventUpdateRequest extends FormRequest
 {
     /**
      * Prepare the data for validation.
@@ -17,10 +17,6 @@ class EventStoreRequest extends FormRequest
      */
     public function prepareForValidation()
     {
-        $this->merge([
-            'organizer_id' => $this->user()->id,
-        ]);
-        
         // If tickets is an empty JSON array, mark it as valid but empty
         if ($this->has('tickets') && $this->input('tickets') === '[]') {
             $this->merge(['tickets_data' => []]);
@@ -43,18 +39,17 @@ class EventStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // Event attributes
-            'name' => 'required|string|max:255',
-            'organizer_id' => 'required|integer|exists:users,id',
-            'date' => 'required|date',
-            'time' => 'required|date_format:H:i',
-            'description' => 'required|string|max:1000',
-            'venue' => 'required|string|max:255',
-            'longitude' => 'required|numeric',
-            'latitude' => 'required|numeric',
-            'city' => 'required|string|max:255',
-            'is_published' => 'required|boolean',
-            'category' => 'required|in:'
+            // Event attributes - all are sometimes instead of required
+            'name' => 'sometimes|string|max:255',
+            'date' => 'sometimes|date',
+            'time' => 'sometimes|string|max:255',
+            'description' => 'sometimes|string|max:1000',
+            'venue' => 'sometimes|string|max:255',
+            'longitude' => 'sometimes|numeric',
+            'latitude' => 'sometimes|numeric',
+            'city' => 'sometimes|string|max:255',
+            'is_published' => 'sometimes|boolean',
+            'category' => 'sometimes|in:'
                 . implode(
                     ',',
                     array_map(
@@ -62,17 +57,17 @@ class EventStoreRequest extends FormRequest
                     )
                 ),
                 
-            // Image attributes
-            'banner' => 'required|file|image|max:5120',
-            'thumbnail' => 'required|file|image|max:2048',
-            'venueImage' => 'required|file|image|max:5120',
-            'seatPlanImage' => 'nullable|file|image|max:5120', // Added seat plan image validation
-            'gallery' => 'nullable|array',
-            'gallery.*' => 'file|image|max:5120',
+            // Image attributes - all are nullable
+            'banner' => 'sometimes|nullable|file|image|max:5120',
+            'thumbnail' => 'sometimes|nullable|file|image|max:2048',
+            'venueImage' => 'sometimes|nullable|file|image|max:5120',
+            'seatPlanImage' => 'sometimes|nullable|file|image|max:5120',
+            'gallery' => 'sometimes|nullable|array',
+            'gallery.*' => 'sometimes|file|image|max:5120',
 
             // Ticket attributes
-            'tickets' => 'required|json',
-            'capacity' => 'nullable|integer|min:1',
+            'tickets' => 'sometimes|json',
+            'capacity' => 'sometimes|nullable|integer|min:1',
         ];
     }
 
@@ -85,6 +80,11 @@ class EventStoreRequest extends FormRequest
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
+            // Skip if no tickets data was provided
+            if (!$this->has('tickets')) {
+                return;
+            }
+            
             // Skip this validation if tickets JSON is invalid
             if ($validator->errors()->has('tickets')) {
                 return;
@@ -182,7 +182,6 @@ class EventStoreRequest extends FormRequest
         return [
             // Event attributes
             'name' => 'event name',
-            'organizer_id' => 'organizer ID',
             'date' => 'event date',
             'time' => 'event time',
             'description' => 'event description',
@@ -197,7 +196,7 @@ class EventStoreRequest extends FormRequest
             'banner' => 'banner image',
             'thumbnail' => 'thumbnail image',
             'venueImage' => 'venue image',
-            'seatPlanImage' => 'seat plan image', // Added seat plan image attribute
+            'seatPlanImage' => 'seat plan image',
             'gallery' => 'gallery images',
             'gallery.*' => 'gallery image',
             
@@ -215,43 +214,24 @@ class EventStoreRequest extends FormRequest
     public function messages(): array
     {
         return [
-            // Event validation messages
-            'name.required' => 'The :attribute is required.',
-            'organizer_id.required' => 'The :attribute is required.',
-            'date.required' => 'The :attribute is required.',
-            'time.required' => 'The :attribute is required.',
-            'description.required' => 'The :attribute is required.',
-            'venue.required' => 'The :attribute is required.',
-            'longitude.required' => 'The :attribute is required.',
-            'latitude.required' => 'The :attribute is required.',
-            'city.required' => 'The :attribute is required.',
-            'category.required' => 'The :attribute is required.',
-            'is_published.required' => 'The :attribute is required.',
-
             // Image validation messages
-            'banner.required' => 'The :attribute is required.',
-            'thumbnail.required' => 'The :attribute is required.',
-            'venueImage.required' => 'The :attribute is required.',
-            'seatPlanImage.image' => 'The :attribute must be an image.', // Added seat plan message
-            'seatPlanImage.max' => 'The :attribute may not be greater than 5120 kilobytes.', // Added seat plan message
-            'gallery.required' => 'The :attribute is required.',
-            'gallery.*.required' => 'The :attribute is required.',
             'banner.file' => 'The :attribute must be a file.',
             'thumbnail.file' => 'The :attribute must be a file.',
             'venueImage.file' => 'The :attribute must be a file.',
-            'seatPlanImage.file' => 'The :attribute must be a file.', // Added seat plan message
+            'seatPlanImage.file' => 'The :attribute must be a file.',
             'gallery.*.file' => 'The :attribute must be a file.',
             'banner.image' => 'The :attribute must be an image.',
             'thumbnail.image' => 'The :attribute must be an image.',
             'venueImage.image' => 'The :attribute must be an image.',
+            'seatPlanImage.image' => 'The :attribute must be an image.',
             'gallery.*.image' => 'The :attribute must be an image.',
             'banner.max' => 'The :attribute may not be greater than 5120 kilobytes.',
             'thumbnail.max' => 'The :attribute may not be greater than 2048 kilobytes.',
             'venueImage.max' => 'The :attribute may not be greater than 5120 kilobytes.',
+            'seatPlanImage.max' => 'The :attribute may not be greater than 5120 kilobytes.',
             'gallery.*.max' => 'The :attribute may not be greater than 5120 kilobytes.',
             
             // Ticket validation messages
-            'tickets.required' => 'Ticket information is required.',
             'tickets.json' => 'Ticket information must be in valid JSON format.',
             'capacity.integer' => 'The event capacity must be a number.',
             'capacity.min' => 'The event capacity must be at least 1.',
