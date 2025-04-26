@@ -382,7 +382,7 @@ class EventController extends Controller
                 'latitude' => $data['latitude'],
                 'city' => $data['city'],
                 'category' => $data['category'],
-                'is_published' => $data['is_published'] ?? false, // Get from request or default to false
+                'is_published' => $data['is_published'] ?? false,
             ];
 
             $images = [

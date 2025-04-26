@@ -67,6 +67,7 @@ class DatabaseSeeder extends Seeder
             TicketSeeder::class,
             EventBookmarkSeeder::class,
             FriendsSeeder::class,
+            VoucherSeeder::class,
         ]);
     }
 }

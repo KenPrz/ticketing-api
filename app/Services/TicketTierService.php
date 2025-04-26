@@ -52,7 +52,6 @@ class TicketTierService
     public function createTicketsAndSeats(Event $event, array $tickets)
     {
         $ticketTiers = [];
-
         foreach ($tickets as $ticketData) {
             // Check if $ticketData is an object or an array and access properties accordingly
             $tierName = is_object($ticketData) ? $ticketData->tier_name : $ticketData['tier_name'];
@@ -69,7 +68,7 @@ class TicketTierService
             ]);
 
             // Add seats if it's a seated ticket type
-            $this->createSeats($ticketTier);
+            $this->createSeats($ticketTier, $event->id);
 
             $ticketTiers[] = $ticketTier;
         }
@@ -81,46 +80,91 @@ class TicketTierService
      * Create seats for a ticket tier.
      *
      * @param EventTicketTier $ticketTier The ticket tier to create seats for
+     * @param int $eventId The event ID
      *
      * @return array The created seats
      */
-    public function createSeats(EventTicketTier $ticketTier)
+    public function createSeats(EventTicketTier $ticketTier, $eventId)
     {
         $seats = [];
         $quantity = $ticketTier->quantity;
-
-        // Only create seats for seated ticket types
-        if ($this->isSeatedTicketType($ticketTier->ticket_type)) {
+        
+        // Get the ticket type - it's an enum instance in your system
+        $ticketType = $ticketTier->ticket_type;
+        
+        // If stored as a string, convert to enum (if needed)
+        if (is_string($ticketType)) {
+            $ticketType = TicketType::from($ticketType);
+        }
+        
+        // Get the section name (the string value from the enum)
+        $section = $ticketType->value;
+        
+        // Get the appropriate prefix from the enum's ticketPrefix method
+        $ticketPrefixes = TicketType::ticketPrefix();
+        $prefix = $ticketPrefixes[$section] ?? substr($section, 0, 3);
+        
+        $now = now();
+        
+        // Check if this is a standing area
+        $isStandingArea = $ticketType === TicketType::FLOOR_STANDING || 
+                        $ticketType === TicketType::GENERAL_ADMISSION;
+        
+        if ($isStandingArea) {
+            // For standing areas, create placeholder entries
             for ($i = 1; $i <= $quantity; $i++) {
                 $seats[] = $ticketTier->seats()->create([
-                    'seat_number' => $i,
+                    'event_id' => $eventId,
+                    'section' => $section,
+                    'row' => $prefix,
+                    'number' => $i,
                     'status' => 'available',
                 ]);
+                
+                // If you need to insert in bulk for performance, you could collect the data
+                // and use Seat::insert() as shown in the original code
+            }
+        } else {
+            // For seated areas, create a layout with rows
+            
+            // Calculate a reasonable number of seats per row
+            $seatsPerRow = min(max(10, ceil(sqrt($quantity))), 20);
+            
+            // Calculate number of rows needed
+            $rowCount = ceil($quantity / $seatsPerRow);
+            
+            // Generate rows using letters (A, B, C, ...)
+            $rowLetters = range('A', 'Z');
+            
+            // Create the seats
+            $seatCount = 0;
+            
+            for ($rowIndex = 0; $rowIndex < $rowCount; $rowIndex++) {
+                // If we need more than 26 rows, we'll use AA, AB, etc.
+                $rowLetter = $rowIndex < 26 ? $rowLetters[$rowIndex] : 
+                    $rowLetters[floor($rowIndex / 26) - 1] . $rowLetters[$rowIndex % 26];
+                
+                // Add the prefix to ensure uniqueness
+                $rowName = "{$prefix}-{$rowLetter}";
+                
+                for ($seatNum = 1; $seatNum <= $seatsPerRow; $seatNum++) {
+                    // Stop if we've created enough seats
+                    if (++$seatCount > $quantity) {
+                        break;
+                    }
+                    
+                    $seats[] = $ticketTier->seats()->create([
+                        'event_id' => $eventId,
+                        'section' => $section,
+                        'row' => $rowName,
+                        'seat_number' => $seatNum,
+                        'status' => 'available',
+                    ]);
+                }
             }
         }
-
+        
         return $seats;
-    }
-
-    /**
-     * Check if a ticket type is a seated type.
-     *
-     * @param string|TicketType $ticketType The ticket type to check
-     *
-     * @return bool True if the ticket type is seated
-     */
-    private function isSeatedTicketType($ticketType): bool
-    {
-        // Convert enum to string if needed
-        $typeValue = $ticketType;
-        
-        // If it's an enum, get its value
-        if ($ticketType instanceof TicketType) {
-            $typeValue = $ticketType->value;
-        }
-        
-        $standingTypes = ['GENERAL ADMISSION', 'FLOOR STANDING'];
-        return !in_array($typeValue, $standingTypes);
     }
 
     /**
@@ -178,6 +222,20 @@ class TicketTierService
             Log::error("Error deleting ticket tiers: " . $e->getMessage());
             throw $e;
         }
+    }
+
+    /**
+     * Fetch all seats associated with a specific ticket tier.
+     * 
+     * @param string $ticketTierId The ID of the ticket tier
+     * 
+     * @return \Illuminate\Database\Eloquent\Collection The seats associated with the ticket tier
+     */
+    public function fetchSeatsByTicketTierID(string $ticketTierId)
+    {
+        return $this->eventTicketTier
+            ->findOrFail($ticketTierId)
+            ->seatsByTicketTier;
     }
 
     /**

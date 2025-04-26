@@ -3,6 +3,7 @@
 use App\Http\Controllers\Common\HomeController;
 use App\Http\Controllers\Events\EventController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\VoucherController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum', 'mobile.verified', 'is.organizer'])->group(function () {
@@ -33,6 +34,21 @@ Route::middleware(['auth:sanctum', 'mobile.verified', 'is.organizer'])->group(fu
             ->name('organizer.events.destroy');
         Route::patch('/tickets/{id}/mark-as-used', [TicketController::class, 'markAsUsed'])
             ->name('organizer.ticket.mark-as-used');
+            
+        // Voucher management routes
+        Route::get('/vouchers', [VoucherController::class, 'index'])
+            ->name('organizer.vouchers.index');
+        Route::get('/vouchers/{id}', [VoucherController::class, 'show'])
+            ->name('organizer.vouchers.show');
+        Route::post('/vouchers', [VoucherController::class, 'store'])
+            ->name('organizer.vouchers.store');
+        Route::put('/vouchers/{id}', [VoucherController::class, 'update'])
+            ->name('organizer.vouchers.update');
+        Route::delete('/vouchers/{id}', [VoucherController::class, 'destroy'])
+            ->name('organizer.vouchers.destroy');
+        Route::get('/vouchers/check/{code}', [VoucherController::class, 'checkVoucher'])
+            ->name('organizer.vouchers.check');
+        
         // Add more organizer-specific routes here
     });
 });
