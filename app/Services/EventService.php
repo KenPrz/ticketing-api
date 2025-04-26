@@ -110,6 +110,7 @@ class EventService
         }
 
         $event->is_published = true;
+        $event->published_at = now();
         $event->save();
 
         return $event;
@@ -139,7 +140,7 @@ class EventService
     }
 
     /**
-     * Get an event by its ID.
+     * Get events.
      *
      * @param  int $perPage  The number of events to show per page.
      *
@@ -147,7 +148,7 @@ class EventService
      *
      * @return LengthAwarePaginator  The paginated collection of events.
      */
-    public function getevents(
+    public function getEvents(
         int $perPage = 10,
     ): LengthAwarePaginator {
         return $this->event
@@ -168,6 +169,30 @@ class EventService
     {
         return $this->event
             ->where('is_published', true)
+            ->find($id);
+    }
+
+    /**
+     * Get detailed information about an event with all related data.
+     *
+     * @param  string  $id  The ID of the event to retrieve
+     *
+     * @throws ModelNotFoundException  When event is not found
+     *
+     * @return Event|null  The found event instance with all relations
+     */
+    public function getEventFullDetails(string $id): Event | null
+    {
+        return $this->event
+            ->with([
+                'organizer',
+                'ticketTiers.tickets',
+                'banner',
+                'thumbnail',
+                'venueImage',
+                'seatPlanImage',
+                'gallery',
+            ])
             ->find($id);
     }
 
@@ -414,7 +439,6 @@ class EventService
             ->where('is_published', true)
             ->where('date', '>=', now())
             ->orderBy('date', 'asc')
-            ->limit(config('constants.home_limit'))
             ->get();
         
         return $data->map(function ($event) {
@@ -434,6 +458,67 @@ class EventService
                         ->get()
                         ->sum('quantity'),
                 ],
+            ];
+        });
+    }
+
+    /**
+     * Fetch the past events that are organized by the user.
+     * 
+     * @param User $user The user instance
+     * 
+     * @return mixed
+     */
+    public function fetchOrganizerPastEvents(User $user)
+    {
+        $data =  $this->getOrganizerEvents($user)
+            ->where('is_published', true)
+            ->where('date', '<', now())
+            ->orderBy('date', 'desc')
+            ->get();
+        
+        return $data->map(function ($event) {
+            return [
+                'id' => $event->id,
+                'name' => $event->name,
+                'date' => $event->date->format('M j, Y'),
+                'venue' => $event->venue,
+                'city' => $event->city,
+                'ticketSales' => [
+                    'sold' => $event->ticketTiers()
+                        ->withCount('tickets')
+                        ->get()
+                        ->sum('tickets_count'),
+                    'available' => $event->ticketTiers()
+                        ->withCount('tickets')
+                        ->get()
+                        ->sum('quantity'),
+                ],
+            ];
+        });
+    }
+
+    /**
+     * Get the unpublished events for the organizer.
+     * 
+     * @param User $user The user instance
+     * 
+     * @return mixed
+     */
+    public function fetchOrganizerUnpublishedEvents(User $user)
+    {
+        $data =  $this->getOrganizerEvents($user)
+            ->where('is_published', false)
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        return $data->map(function ($event) {
+            return [
+                'id' => $event->id,
+                'name' => $event->name,
+                'date' => $event->date->format('M j, Y'),
+                'venue' => $event->venue,
+                'city' => $event->city,
             ];
         });
     }
