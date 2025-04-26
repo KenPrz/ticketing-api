@@ -142,6 +142,90 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if the user is friends with another user
+     *
+     * @param \App\Models\User $user
+     * @return bool
+     */
+    public function isFriendsWith(User $user): bool
+    {
+        // Don't check friendship with self
+        if ($this->id === $user->id) {
+            return false;
+        }
+    
+        // Explicitly check for ACCEPTED status in both directions
+        $forwardFriendship = UserFriend::where('user_id', $this->id)
+            ->where('friend_id', $user->id)
+            ->where('status', FriendStatus::ACCEPTED)
+            ->exists();
+            
+        $reverseFriendship = UserFriend::where('user_id', $user->id)
+            ->where('friend_id', $this->id)
+            ->where('status', FriendStatus::ACCEPTED)
+            ->exists();
+            
+        return $forwardFriendship || $reverseFriendship;
+    }
+
+    /**
+     * Check if the user has a pending friend request from another user
+     *
+     * @param \App\Models\User $user
+     * @return bool
+     */
+    public function hasPendingRequestFrom(User $user): bool
+    {
+        return UserFriend::where([
+            'user_id' => $user->id,
+            'friend_id' => $this->id,
+            'status' => FriendStatus::PENDING
+        ])->exists();
+    }
+
+    /**
+     * Check if the user has sent a pending friend request to another user
+     *
+     * @param \App\Models\User $user
+     * @return bool
+     */
+    public function hasPendingRequestTo(User $user): bool
+    {
+        return UserFriend::where([
+            'user_id' => $this->id,
+            'friend_id' => $user->id,
+            'status' => FriendStatus::PENDING
+        ])->exists();
+    }
+
+    /**
+     * Get the friendship status with another user
+     *
+     * @param \App\Models\User $user
+     * @return string
+     */
+    public function getFriendshipStatusWith(User $user): string
+    {
+        // First check for pending requests FROM the other user
+        if ($this->hasPendingRequestFrom($user)) {
+            return 'REQUEST_RECEIVED';
+        }
+        
+        // Then check if users are friends
+        if ($this->isFriendsWith($user)) {
+            return 'FRIENDS';
+        }
+        
+        // Then check if current user sent a request TO the other user
+        if ($this->hasPendingRequestTo($user)) {
+            return 'REQUEST_SENT';
+        }
+        
+        // Default state
+        return 'NOT_FRIENDS';
+    }
+
+    /**
      * Check if the user is a client.
      *
      * @return bool

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\SendFriendRequest;
 use App\Http\Requests\FriendActionRequest;
+use App\Http\Resources\UserFriendResource;
+use App\Http\Resources\UserFriendCollection;
 use App\Services\FriendService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -27,7 +29,6 @@ class FriendController extends Controller
         $this->friendService = $friendService;
     }
 
-
     /**
      * Get the authenticated user's friend list.
      *
@@ -39,9 +40,7 @@ class FriendController extends Controller
 
         $friends = $this->friendService->getFriends($userId);
 
-        return response()->json([
-            'data' => $friends
-        ]);
+        return response()->json(new UserFriendCollection($friends));
     }
 
     /**
@@ -59,7 +58,7 @@ class FriendController extends Controller
         
         return response()->json([
             'message' => 'Friend request sent successfully',
-            'data' => $result
+            'data' => new UserFriendResource($result)
         ], 201);
     }
     
@@ -82,8 +81,12 @@ class FriendController extends Controller
             ], 404);
         }
         
+        // Get the friendship record to return
+        $friendship = $this->friendService->getFriendship($friendId, $userId);
+        
         return response()->json([
-            'message' => 'Friend request accepted successfully'
+            'message' => 'Friend request accepted successfully',
+            'data' => $friendship ? new UserFriendResource($friendship) : null
         ]);
     }
     
@@ -170,9 +173,7 @@ class FriendController extends Controller
         
         $sentRequests = $this->friendService->getSentFriendRequests($userId);
         
-        return response()->json([
-            'data' => $sentRequests
-        ]);
+        return response()->json(new UserFriendCollection($sentRequests));
     }
     
     /**
@@ -186,8 +187,54 @@ class FriendController extends Controller
         
         $receivedRequests = $this->friendService->getReceivedFriendRequests($userId);
         
+        return response()->json(new UserFriendCollection($receivedRequests));
+    }
+
+    /**
+     * Remove a friend.
+     *
+     * @param \App\Http\Requests\FriendActionRequest $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function cancelFriendRequest(FriendActionRequest $request): JsonResponse
+    {
+        $userId = $request->user()->id;
+        $friendId = $request->friend_id;
+
+        $result = $this->friendService->cancelFriendRequest($userId, $friendId);
+
+        if (!$result) {
+            return response()->json([
+                'message' => 'Friend request not found or already processed'
+            ], 404);
+        }
+
         return response()->json([
-            'data' => $receivedRequests
+            'message' => 'Friend request cancelled successfully'
+        ]);
+    }
+
+    /**
+     * Remove a friend.
+     *
+     * @param \App\Http\Requests\FriendActionRequest $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function removeFriend(FriendActionRequest $request): JsonResponse
+    {
+        $userId = $request->user()->id;
+        $friendId = $request->friend_id;
+
+        $result = $this->friendService->removeFriend($userId, $friendId);
+
+        if (!$result) {
+            return response()->json([
+                'message' => 'Friendship not found or already removed'
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Friend removed successfully'
         ]);
     }
 }
