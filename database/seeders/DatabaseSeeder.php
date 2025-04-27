@@ -68,6 +68,8 @@ class DatabaseSeeder extends Seeder
             EventBookmarkSeeder::class,
             FriendsSeeder::class,
             VoucherSeeder::class,
+            PostSeeder::class,
+            PostVoteSeeder::class,
         ]);
     }
 }

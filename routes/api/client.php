@@ -6,6 +6,7 @@ use App\Http\Controllers\Events\EventController;
 use App\Http\Controllers\FriendController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TransferController;
@@ -132,5 +133,22 @@ Route::prefix('/clients')
                 ->name('organizer.vouchers.show');
             Route::get('/vouchers/check/{code}', [VoucherController::class, 'checkVoucher'])
                 ->name('organizer.vouchers.check');
+
+            // Posts routes
+            Route::get('/posts', [PostController::class, 'index'])
+                ->name('posts.index');
+            Route::post('/posts', [PostController::class, 'store'])
+                ->name('posts.store');
+            Route::patch('/posts/{id}', [PostController::class, 'update'])
+                ->name('posts.update');
+            Route::delete('/posts/{id}', [PostController::class, 'destroy'])
+                ->name('posts.destroy');
+            Route::post('/posts/upvote/{id}', [PostController::class, 'upvote'])
+                ->name('posts.upvote');
+            Route::post('/posts/downvote/{id}', [PostController::class, 'downvote'])
+                ->name('posts.downvote');
+            Route::post('/posts/unvote/{id}', [PostController::class, 'unvote'])
+                ->name('posts.unvote');
+            // Posts comments routes
         });
 });

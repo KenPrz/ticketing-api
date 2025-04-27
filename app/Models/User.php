@@ -226,6 +226,16 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the posts of the user.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function posts()
+    {
+        return $this->hasMany(Post::class);
+    }
+
+    /**
      * Check if the user is a client.
      *
      * @return bool
