@@ -57,7 +57,16 @@ class DatabaseSeeder extends Seeder
             'recent_latitude' => config('constants.default_coordinates.latitude'),
             'recent_longitude' => config('constants.default_coordinates.longitude'),
         ]);
-        
+
+        User::create([
+            'Name' => 'Customer Support',
+            'mobile' => '+639123456788',
+            'email' => 'support@qphoria.com',
+            'user_type' => UserTypes::ORGANIZER->value,
+            'password' => bcrypt('password'),
+            'recent_latitude' => config('constants.default_coordinates.latitude'),
+            'recent_longitude' => config('constants.default_coordinates.longitude'),
+        ]);
 
         $this->call([
             UserSeeder::class,
@@ -68,6 +77,9 @@ class DatabaseSeeder extends Seeder
             EventBookmarkSeeder::class,
             FriendsSeeder::class,
             VoucherSeeder::class,
+            PostSeeder::class,
+            PostVoteSeeder::class,
+            ChatSeeder::class,
         ]);
     }
 }

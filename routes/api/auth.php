@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\Common\ApiKeyController;
 use App\Http\Controllers\Common\AuthController;
 use App\Http\Controllers\Common\OtpController;
@@ -59,4 +60,20 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->name('profile.update.avatar');
     Route::patch('/profile/password', [UserProfileController::class, 'updatePassword'])
         ->name('profile.update.password');
+
+    // Chat routes
+    Route::get('/chats', [ChatController::class, 'index'])
+        ->name('chats.index');
+    Route::post('/chats', [ChatController::class, 'store'])
+        ->name('chats.store');
+    Route::get('/chats/{id}', [ChatController::class, 'show'])
+        ->name('chats.show');
+    Route::delete('/chats/{id}', [ChatController::class, 'destroy'])
+        ->name('chats.destroy');
+    Route::get('/conversation/{userId}', [ChatController::class, 'getConversationWithUser'])
+        ->name('chats.conversation');
+    Route::post('/chats/{id}/messages', [ChatController::class, 'sendMessageToChat'])
+        ->name('chats.messages.store');
+    Route::put('/chats/{id}/read', [ChatController::class, 'markMessagesAsRead'])
+        ->name('chats.messages.read');
 });

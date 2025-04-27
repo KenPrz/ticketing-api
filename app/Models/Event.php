@@ -239,4 +239,14 @@ class Event extends Model
             'user_id',
         );
     }
+
+    /**
+     * Get the event reviews for this event.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function eventReviews()
+    {
+        return $this->hasMany(Post::class, 'event_id');
+    }
 }

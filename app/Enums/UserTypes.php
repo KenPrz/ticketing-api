@@ -28,12 +28,30 @@ enum UserTypes: string
      */
     case ADMIN = 'ADMIN';
 
+    /**
+     * Get the list of all user types.
+     *
+     * @return array<string>
+     */
     public static function list(): array
     {
         return [
             self::CLIENT,
             self::ORGANIZER,
             self::ADMIN,
+        ];
+    }
+
+    /**
+     * Get the list of user types that are exposed to the client.
+     *
+     * @return array<string>
+     */
+    public static function exposedUserTypes(): array
+    {
+        return [
+            self::CLIENT->value,
+            self::ORGANIZER->value,
         ];
     }
 }

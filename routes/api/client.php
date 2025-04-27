@@ -6,9 +6,11 @@ use App\Http\Controllers\Events\EventController;
 use App\Http\Controllers\FriendController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TransferController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\VoucherController;
 use Illuminate\Support\Facades\Route;
 
@@ -77,6 +79,14 @@ Route::prefix('/clients')
             Route::post('/transfers/cancel', [TransferController::class, 'cancelTicketTransfer'])
                 ->name('transfers.cancel');
 
+            // User profile routes
+            Route::get('/profile/users/home', [UserController::class, 'usersHome'])
+                ->name('profile.users.home');
+            Route::get('/profile/{user_id}', [UserController::class, 'getUserProfile'])
+                ->name('profile.show');
+            Route::post('/profile/search-user', [UserController::class, 'searchUsers'])
+                ->name('profile.search');
+
             // Friend routes
             Route::get('/friends', [FriendController::class, 'index'])
                 ->name('friends.index');
@@ -94,6 +104,10 @@ Route::prefix('/clients')
                 ->name('friends.block-user');
             Route::post('/friends/unblock-user', [FriendController::class, 'unblockUser'])
                 ->name('friends.unblock-user');
+            Route::post('/friends/remove-friend', [FriendController::class, 'removeFriend'])
+                ->name('friends.remove-friend');
+            Route::post('/friends/cancel-request', [FriendController::class, 'cancelFriendRequest'])
+                ->name('friends.remove-friend');
             
             // Notification routes
             // List all notifications
@@ -119,5 +133,29 @@ Route::prefix('/clients')
                 ->name('organizer.vouchers.show');
             Route::get('/vouchers/check/{code}', [VoucherController::class, 'checkVoucher'])
                 ->name('organizer.vouchers.check');
+
+            // Posts routes
+            Route::get('/posts', [PostController::class, 'index'])
+                ->name('posts.index');
+            Route::post('/posts', [PostController::class, 'store'])
+                ->name('posts.store');
+            Route::patch('/posts/{id}', [PostController::class, 'update'])
+                ->name('posts.update');
+            Route::delete('/posts/{id}', [PostController::class, 'destroy'])
+                ->name('posts.destroy');
+            Route::post('/posts/upvote/{id}', [PostController::class, 'upvote'])
+                ->name('posts.upvote');
+            Route::post('/posts/downvote/{id}', [PostController::class, 'downvote'])
+                ->name('posts.downvote');
+            Route::post('/posts/unvote/{id}', [PostController::class, 'unvote'])
+                ->name('posts.unvote');
+            Route::get('/posts/user-posts', [PostController::class, 'getUserPosts'])
+                ->name('posts.user.posts');
+
+            // Post creation routes for attachments
+            Route::get('/get-tickets', [PostController::class, 'getUserTickets'])
+                ->name('user.tickets');
+            Route::get('/search-events', [PostController::class, 'searchEvents'])
+                ->name('user.events');
         });
 });

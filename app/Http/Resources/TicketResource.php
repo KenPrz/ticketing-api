@@ -44,7 +44,7 @@ class TicketResource extends JsonResource
                     'thumbnail' => $this->event->thumbnail?->url,
                 ];
             }),
-            
+
             // Ticket tier information
             'ticket_tier' => $this->when($this->relationLoaded('ticketTier') && $this->ticketTier, function () {
                 return [
@@ -54,7 +54,7 @@ class TicketResource extends JsonResource
                     'ticket_type' => $this->ticketTier->ticket_type,
                 ];
             }),
-            
+
             // Owner information
             'owner' => $this->when($this->relationLoaded('owner') && $this->owner, function () {
                 return [
@@ -64,7 +64,7 @@ class TicketResource extends JsonResource
                     'mobile' => $this->owner->mobile,
                 ];
             }),
-            
+
             // Purchase information
             'purchase' => $this->when($this->relationLoaded('purchase') && $this->purchase, function () {
                 // Check if purchaser exists before trying to access it

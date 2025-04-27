@@ -79,7 +79,7 @@ class FriendService
         // Fire the event
         event(new FriendRequestSent($userFriend, $sender, $recipient));
 
-        return $userFriend;
+        return $userFriend->load('friend'); // Load the friend relationship
     }
 
     /**
@@ -221,5 +221,63 @@ class FriendService
             ->where('status', FriendStatus::PENDING)
             ->with('user')
             ->get();
+    }
+    
+    /**
+     * Get a specific friendship record.
+     *
+     * @param int $userId
+     * @param int $friendId
+     *
+     * @return \App\Models\UserFriend|null
+     */
+    public function getFriendship(
+        int $userId,
+        int $friendId
+    ): ?UserFriend {
+        return $this->model->where([
+            'user_id' => $userId,
+            'friend_id' => $friendId,
+        ])
+        ->with(['user', 'friend'])
+        ->first();
+    }
+
+    /**
+     * Cancel a friend request.
+     *
+     * @param int $userId
+     * @param int $friendId
+     *
+     * @return bool whether the deletion was successful
+     */
+    public function cancelFriendRequest(
+        int $userId,
+        int $friendId
+    ): bool {
+        return $this->model->where([
+            'user_id' => $userId,
+            'friend_id' => $friendId,
+            'status' => FriendStatus::PENDING,
+        ])->delete();
+    }
+
+    /**
+     * Remove a friend.
+     *
+     * @param int $userId
+     * @param int $friendId
+     *
+     * @return bool whether the deletion was successful
+     */
+    public function removeFriend(
+        int $userId,
+        int $friendId
+    ): bool {
+        return $this->model->where([
+            'user_id' => $userId,
+            'friend_id' => $friendId,
+            'status' => FriendStatus::ACCEPTED,
+        ])->delete();
     }
 }
