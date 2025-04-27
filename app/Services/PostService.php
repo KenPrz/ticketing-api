@@ -29,23 +29,63 @@ class PostService
     }
 
     /**
-     * Get relevant posts for the authenticated user ordered by upvotes and creation date.
-     * 
+     * Get relevant posts for the authenticated user, including the user's latest post at the top,
+     * and shuffle the remaining posts.
+     *
      * @param \App\Models\User $user
      * @param string $direction
-     * 
+     *
      * @return \Illuminate\Database\Eloquent\Collection<int, Post>
      */
-    public function getRelevantPosts(
-        User $user,
-        $direction = 'desc',
-    ) {
-        // Get posts from other users
-        return $this->post
+    public function getRelevantPosts(User $user, $direction = 'desc')
+    {
+        // Get the user's latest post
+        $userLatestPost = $this->post
+            ->with(['user', 'event', 'ticket'])
+            ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        // Get the latest posts from other users
+        $otherPosts = $this->post
             ->with(['user', 'event', 'ticket'])
             ->where('user_id', '!=', $user->id)
             ->withCount('upvotes')
-            ->orderBy('upvotes_count', $direction)
+            ->orderBy('created_at', $direction)
+            ->limit(49) // Limit to 49 to accommodate the user's post
+            ->get();
+
+        // Shuffle the other posts
+        $shuffledOtherPosts = $otherPosts->shuffle();
+
+        // Merge the user's latest post with the shuffled other posts
+        $posts = collect();
+        if ($userLatestPost) {
+            $posts->push($userLatestPost);
+        }
+
+        $posts = $posts->merge($shuffledOtherPosts);
+
+        return $posts;
+    }
+
+    /**
+     * Get the posts of a specific user.
+     *
+     * @param \App\Models\User $user
+     * @param string $id
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, Post>
+     */
+    public function getUserPosts(
+        User $user,
+        $direction = 'desc',
+    ) {
+        // Get posts from the specified user
+        return $this->post
+            ->with(['user', 'event', 'ticket'])
+            ->where('user_id', $user->id)
+            ->withCount('upvotes')
             ->orderBy('created_at', $direction)
             ->limit(50)
             ->get();

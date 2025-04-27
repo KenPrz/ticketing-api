@@ -16,7 +16,7 @@ class UserProfileController extends Controller
     {
         // Return the user profile data
         return response()->json([
-            $request->user()->with('posts'),
+            $request->user(),
         ]);
     }
 

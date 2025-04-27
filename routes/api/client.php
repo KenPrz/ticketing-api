@@ -149,6 +149,13 @@ Route::prefix('/clients')
                 ->name('posts.downvote');
             Route::post('/posts/unvote/{id}', [PostController::class, 'unvote'])
                 ->name('posts.unvote');
-            // Posts comments routes
+            Route::get('/posts/user-posts', [PostController::class, 'getUserPosts'])
+                ->name('posts.user.posts');
+
+            // Post creation routes for attachments
+            Route::get('/get-tickets', [PostController::class, 'getUserTickets'])
+                ->name('user.tickets');
+            Route::get('/search-events', [PostController::class, 'searchEvents'])
+                ->name('user.events');
         });
 });

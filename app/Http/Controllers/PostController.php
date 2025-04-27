@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use App\Http\Resources\PostResource;
+use App\Http\Resources\TicketResource;
+use App\Models\Event;
+use App\Models\Ticket;
 use App\Services\PostService;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -42,11 +45,37 @@ class PostController extends Controller
         $data = PostResource::collection($posts)
             ->response()
             ->getData(true);
-        Log::info(json_encode($data));
+
         // Return the posts as a JSON response
         return response()->json(
             [
                 $data,
+            ],
+            200,
+        );
+    }
+
+    /**
+     * Get the posts of a specific user.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getUserPosts(Request $request)
+    {
+        // Get the authenticated user
+        $user = $request->user();
+
+        // Get the posts of the authenticated user
+        $posts = $this->postService->getUserPosts($user);
+
+        // Return the posts as a JSON response
+        return response()->json(
+            [
+                'posts' => PostResource::collection($posts)
+                    ->response()
+                    ->getData(true),
             ],
             200,
         );
@@ -212,5 +241,73 @@ class PostController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Get the tickets of a specific user.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getUserTickets(Request $request)
+    {
+        // Get the authenticated user
+        $user = $request->user();
+        $query = $request->input('query');
+
+        // Get the tickets of the authenticated user
+        $tickets = Ticket::where('owner_id', $user->id)
+            ->with('event')
+            ->where(function ($queryBuilder) use ($query) {
+                if (!empty($query)) {
+                    $queryBuilder->where('ticket_name', 'LIKE', '%' . $query . '%')
+                        ->orWhere('ticket_type', 'LIKE', '%' . $query . '%')
+                        ->orWhere('ticket_desc', 'LIKE', '%' . $query . '%');
+                }
+            })
+            ->where('is_used', false)
+            ->limit(5)
+            ->get();
+        $data = TicketResource::collection($tickets)
+            ->response()
+            ->getData(true);
+
+        // Return the tickets as a JSON response
+        return response()->json(
+            [
+                $data,
+            ],
+            200,
+        );
+    }
+
+    /**
+     * Get the events of a specific user.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function searchEvents(Request $request)
+    {
+        $query = $request->input('query');
+
+        // Validate the query
+        if (empty($query)) {
+            return response()->json([
+                'message' => 'Query parameter is required',
+            ], 400);
+        }
+
+        // Search for events based on the query
+        $events = Event::where('name', 'LIKE', '%' . $query . '%')
+            ->orWhere('description', 'LIKE', '%' . $query . '%')
+            ->get();
+
+        // Return the events as a JSON response
+        return response()->json([
+            $events,
+        ], 200);
     }
 }
