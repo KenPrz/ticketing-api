@@ -108,7 +108,9 @@ Route::prefix('/clients')
                 ->name('friends.remove-friend');
             Route::post('/friends/cancel-request', [FriendController::class, 'cancelFriendRequest'])
                 ->name('friends.remove-friend');
-            
+            Route::post('/friends/fetch-contacts', [FriendController::class, 'fetchByContacts'])
+                ->name('friends.fetch-contacts');
+
             // Notification routes
             // List all notifications
             Route::get('/notifications', [NotificationController::class, 'index'])

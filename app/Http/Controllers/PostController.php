@@ -267,7 +267,6 @@ class PostController extends Controller
                 }
             })
             ->where('is_used', false)
-            ->limit(5)
             ->get();
         $data = TicketResource::collection($tickets)
             ->response()

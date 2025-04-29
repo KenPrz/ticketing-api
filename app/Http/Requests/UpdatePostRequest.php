@@ -24,9 +24,6 @@ class UpdatePostRequest extends FormRequest
     {
         return [
             'content' => 'sometimes|string|max:1000',
-            'post_context' => 'sometimes|string',
-            'event_id' => 'nullable|exists:events,id',
-            'ticket_id' => 'nullable|exists:tickets,id',
             'price' => 'nullable|numeric|min:0',
         ];
     }
@@ -40,8 +37,6 @@ class UpdatePostRequest extends FormRequest
     {
         return [
             'content.max' => 'Post content cannot exceed 1000 characters',
-            'event_id.exists' => 'The selected event does not exist',
-            'ticket_id.exists' => 'The selected ticket does not exist',
             'price.numeric' => 'Price must be a number',
             'price.min' => 'Price cannot be negative',
         ];

@@ -142,9 +142,6 @@ class PostService
 
         $post->update([
             'content' => $data['content'] ?? $post->content,
-            'post_context' => $data['post_context'] ?? $post->post_context,
-            'event_id' => $data['event_id'] ?? $post->event_id,
-            'ticket_id' => $data['ticket_id'] ?? $post->ticket_id,
             'price' => $data['price'] ?? $post->price,
         ]);
 
