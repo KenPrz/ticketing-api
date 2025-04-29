@@ -2,13 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\SendFriendRequest;
-use App\Http\Requests\FriendActionRequest;
+use App\Http\Requests\{
+    SendFriendRequest,
+    FriendActionRequest,
+    FetchByContactsRequest,
+};
+use App\Http\Resources\UserContactSyncResource;
 use App\Http\Resources\UserFriendResource;
 use App\Http\Resources\UserFriendCollection;
+use App\Models\User;
 use App\Services\FriendService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class FriendController extends Controller
 {
@@ -47,6 +53,7 @@ class FriendController extends Controller
      * Send a friend request.
      *
      * @param \App\Http\Requests\SendFriendRequest $request
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function sendRequest(SendFriendRequest $request): JsonResponse
@@ -236,5 +243,30 @@ class FriendController extends Controller
         return response()->json([
             'message' => 'Friend removed successfully'
         ]);
+    }
+
+    /**
+     * Fetch friends by contacts.
+     *
+     * @param \App\Http\Requests\FetchByContactsRequest $request
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function fetchByContacts(FetchByContactsRequest $request)
+    {
+        $requestData = $request->validated();
+        $potentialFriends = $this->friendService
+            ->fetchByContacts(
+                $requestData['phoneNumbers'],
+                $request->user()
+            );
+        $data = UserContactSyncResource::collection($potentialFriends)
+            ->response()
+            ->getData(true);
+        return response()
+            ->json(
+                $data,
+                200
+            );
     }
 }

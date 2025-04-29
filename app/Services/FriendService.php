@@ -11,6 +11,7 @@ use App\Models\{
     User,
     UserFriend,
 };
+use App\Enums\UserTypes;
 
 class FriendService
 {
@@ -279,5 +280,21 @@ class FriendService
             'friend_id' => $friendId,
             'status' => FriendStatus::ACCEPTED,
         ])->delete();
+    }
+
+    /**
+     * Fetch users by their phone numbers.
+     *
+     * @param array $phoneNumbers
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, User>
+     */
+    public function fetchByContacts(
+        array $phoneNumbers,
+        User $user,
+    ): \Illuminate\Database\Eloquent\Collection {
+        return $this->userModel->whereIn('mobile', $phoneNumbers)
+            ->whereIn('user_type', UserTypes::exposedUserTypes())
+            ->where('id', '!=', $user->id)->get();
     }
 }

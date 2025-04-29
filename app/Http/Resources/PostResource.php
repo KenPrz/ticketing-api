@@ -16,7 +16,9 @@ class PostResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'post_id' => $this->id,
             'user_id' => $this->user_id,
+            'can_edit' => $this->user_id === $request->user()->id,
             'header' => "{$this->user->name} " . PostContext::getPostTag($this->post_context),
             'content' => $this->content,
             'price' => (int) $this->price,
