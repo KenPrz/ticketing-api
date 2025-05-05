@@ -95,6 +95,7 @@ class PurchaseService
                     'ticket_name' => "{$purchase->event->name} - {$user->name} - {$seat->section->value}",
                     'event_id' => $seat->event_id,
                     'owner_id' => $user->id,
+                    'purchase_id' => $purchase->id,
                     'ticket_tier_id' => $seat->getTicketTierEvenIfNoTicket()->id,
                     'ticket_type' => $seat->section,
                     'ticket_desc' => "Purchased by {$user->name} on {$purchase->created_at}",
