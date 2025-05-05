@@ -284,6 +284,7 @@ class EventService
 
         $query =  $this->event
             ->where('is_published', true)
+            ->where('date', '>=', now())
             ->selectRaw("*, ST_Distance_Sphere(
                 POINT(longitude, latitude), 
                 ST_GeomFromText(?)
@@ -317,6 +318,7 @@ class EventService
     ): Collection | LengthAwarePaginator {
         $query = $this->event
             ->where('is_published', true)
+            ->where('date', '>=', now())
             ->inRandomOrder();
 
         if($isPaginated) {
