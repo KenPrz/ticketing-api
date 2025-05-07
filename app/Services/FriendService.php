@@ -183,12 +183,14 @@ class FriendService
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getFriends(
-        int $userId
-    ): \Illuminate\Database\Eloquent\Collection {
-        return $this->model->where('user_id', $userId)
+    public function getFriends(int $userId): \Illuminate\Database\Eloquent\Collection {
+        return $this->model
+            ->where(function($query) use ($userId) {
+                $query->where('user_id', $userId)
+                      ->orWhere('friend_id', $userId);
+            })
             ->where('status', FriendStatus::ACCEPTED)
-            ->with('friend')
+            ->with(['friend', 'user'])  // Load both relationships
             ->get();
     }
 

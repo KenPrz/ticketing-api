@@ -15,6 +15,21 @@ class UserFriendResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $currentUserId = $request->user()->id;
+        
+        // Determine which user is the actual friend (not the current user)
+        if ($this->user_id == $currentUserId) {
+            // Current user is the initiator, load friend
+            $actualFriend = $this->whenLoaded('friend', function () {
+                return new UserResource($this->friend);
+            });
+        } else {
+            // Current user is the friend, load initiator as "friend"
+            $actualFriend = $this->whenLoaded('user', function () {
+                return new UserResource($this->user);
+            });
+        }
+        
         return [
             'id' => $this->id,
             'user_id' => $this->user_id,
@@ -22,13 +37,7 @@ class UserFriendResource extends JsonResource
             'status' => $this->status,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            // Include the friend or user relationship if it's loaded
-            'friend' => $this->whenLoaded('friend', function () {
-                return new UserResource($this->friend);
-            }),
-            'user' => $this->whenLoaded('user', function () {
-                return new UserResource($this->user);
-            }),
+            'friend' => $actualFriend
         ];
     }
 }
